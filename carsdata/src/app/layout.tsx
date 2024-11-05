@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ModuleProvider } from "../utils/ModuleContext";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -11,15 +12,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <html lang="en">
-            <head>
-                {/* <script src="https://cdn.lordicon.com/lordicon.js"></script> */}
-            </head>
-            <body className={inter.className}>{children}</body>
-        </html>
+        <ModuleProvider> 
+            <html lang="en">
+                <head>
+                    {/* <script src="https://cdn.lordicon.com/lordicon.js"></script> */}
+                </head>
+                <body className={inter.className}>{children}</body>
+            </html>
+        </ModuleProvider>
     );
 }
