@@ -1,8 +1,8 @@
-import UDSpage from "@/src/components/UDScomponents/UDSpage";
+import MCUPage from "./mcu/page"
 
 const UDS = () => {
     return (
-        <UDSpage />
+        <MCUPage/>
     )
 }
 
