@@ -9,6 +9,7 @@ import { engineData, readInfoEngine, writeInfoEngine } from './DivCenterEngine';
 import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors';
 import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
+import { BatteryItems } from '@/src/utils/ApiManager';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -147,7 +148,7 @@ const SendRequests = () => {
                         }
                         /* map with all ecu to activate and deactivate functions */
                         const ecuMappings = [
-                            { index: 0, disableFunction: setDisableInfoBatteryBtns, enableFunction: () => readInfoBattery(true, setData23) },
+                            { index: 0, disableFunction: setDisableInfoBatteryBtns, enableFunction: () => readInfoBattery(setData23, {manual_flow: true}) },
                             { index: 1, disableFunction: setDisableInfoEngineBtns },
                             { index: 2, disableFunction: setDisableInfoDoorsBtns },
                             { index: 3, disableFunction: setDisableInfoHvacsBtns }
@@ -633,11 +634,11 @@ const SendRequests = () => {
                         </button>
                         {/* {isDropdownOpen && ( */}
                         <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>All params</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Battery level</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>State of charge</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Percentage</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(true, setData23) }}>Voltage</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true}) }}>All params</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'battery_level'}) }}>Battery level</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'state_of_charge'}) }}>State of charge</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'percentage'}) }}>Percentage</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'voltage'}) }}>Voltage</a></li>
                         </ul>
                         {/* )} */}
                     </div>
@@ -677,7 +678,7 @@ const SendRequests = () => {
                                         </label>
                                     </li>
                                 </ul>
-                                <ModalUDS id="my_modal_7" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" setter={setData23} />
+                                <ModalUDS id="my_modal_7" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" manual={false} setter={setData23} />
                             </div>
                         )}
 
@@ -745,7 +746,7 @@ const SendRequests = () => {
                                         </label>
                                     </li>
                                 </ul>
-                                <ModalUDS id="my_modal_8" cardTitle={engineCardTitle} writeInfo={writeInfoBattery} param={paramEngine} setter={setData23} />
+                                <ModalUDS id="my_modal_8" cardTitle={engineCardTitle} writeInfo={writeInfoBattery} param={paramEngine} manual={false} setter={setData23} />
                             </div>
                         )}
 

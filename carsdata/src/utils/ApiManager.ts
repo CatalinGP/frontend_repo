@@ -1,14 +1,14 @@
 /* Types for the item flag (used to read a single attribute) */
-type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
-                    'range_battery' | 'charging_time' | 'device_consumption';
+export type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
+                           'range_battery' | 'charging_time' | 'device_consumption';
 
-type DoorsItems = 'door' | 'passenger' | 'driver' | 'passenger_lock' | 'ajar';
+export type DoorsItems = 'door' | 'passenger' | 'driver' | 'passenger_lock' | 'ajar';
 
-type EngineItems = 'engine_rpm' | 'coolant_temperature' | 'throttle_position' | 'vehicle_speed' | 'engine_load' | 'fuel_level' |
-                   'oil_temperature' | 'fuel_pressure' | 'intake_air_temperature' | 'transmission_status';
+export type EngineItems = 'engine_rpm' | 'coolant_temperature' | 'throttle_position' | 'vehicle_speed' | 'engine_load' | 'fuel_level' |
+                          'oil_temperature' | 'fuel_pressure' | 'intake_air_temperature' | 'transmission_status';
 
-type HvacItems = 'mass_air_flow' | 'ambient_air_temperature' | 'cabin_temperature' | 'cabin_temperature_driver_set' |
-                 'fan_speed' | 'hvac_modes';
+export type HvacItems = 'mass_air_flow' | 'ambient_air_temperature' | 'cabin_temperature' | 'cabin_temperature_driver_set' |
+                        'fan_speed' | 'hvac_modes';
 
 type Item = BatteryItems | DoorsItems | EngineItems | HvacItems;
 
