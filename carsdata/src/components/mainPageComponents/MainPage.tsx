@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Carousel from '@/src/components/mainPageComponents/Carousel';
 import NavBarMain from '@/src/components/mainPageComponents/NavBarMain';
 import Map from '@/src/components/mainPageComponents/Map';
+import { isValidVIN } from '@/src/utils/VINValidation';
 
 const MainPage = () => {
     
@@ -24,6 +25,12 @@ const MainPage = () => {
     }, []);
 
     const handleVinSubmit = async () => {
+
+        if (!isValidVIN(vin)) {
+            alert("VIN is invalid. Please check the format and try again.");
+            return;
+        }
+
         try {
             const response = await fetch(`https://jsonplaceholder.typicode.com/posts`, {
                 method: 'POST',
