@@ -683,7 +683,7 @@ const SendRequests = () => {
                         )}
 
                     </div>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(true, setData23) }}>Read Info Engine</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(setData23, {manual_flow: true}) }}>Read Info Engine</button>
 
                     <div className="dropdown">
                         <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
