@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
-import { displayLoadingCircle , displayErrorPopup , removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 import {BatteryItems, apiManager, Endpoints} from '@/src/utils/ApiManager';
 
@@ -21,9 +21,10 @@ export interface batteryData {
     time_stamp: any,
 }
 
-/* Function that reads the data about the Battery. It takes two arguments:
- * isManualFlow: true if the function is called from Stand alone app; false otherwise
+/* Function that reads the data about the Battery. It takes three arguments:
  * setData: setter function
+ * manual_flow: true if the function is called from Stand alone app; false otherwise
+ * item: optional argument; if provided, only the given item will be read
  */
 export const readInfoBattery = async (setData:any,
                                       options: {manual_flow?: boolean; item?: BatteryItems | null} = {}) => {
@@ -54,8 +55,14 @@ export const readInfoBattery = async (setData:any,
     } finally { removeLoadingCicle(); }
 };
 
+/* Function that writes data to Battery. It takes four arguments:
+ * item: the parameter that will be written
+ * newValue: the new value for the parameter
+ * setData: setter function
+ * manual_flow: true if the function is called from Stand alone app; false otherwise
+ */
 export const writeInfoBattery = async (item: BatteryItems, newValue: string, setData: any,
-                                       options: {manual_flow?: boolean} = {}) => {
+                                        options: {manual_flow?: boolean} = {}) => {
 
     /* Set default values using destructuring for the options that were not provided */
     const { manual_flow = false } = options;
@@ -102,15 +109,12 @@ export const writeInfoBattery = async (item: BatteryItems, newValue: string, set
         removeLoadingCicle();
         readInfoBattery(setData, {manual_flow: manual_flow});
     }
-}
+};
 
 const DivCenterBattery = (props: any) => {
     logger.init();
     
     const [data, setData] = useState<batteryData | null>(null);
-    let popupElement: HTMLDivElement | null = null;
-    let popupStyleElement: HTMLStyleElement | null = null;
-    let overlayElement: HTMLDivElement | null = null;
 
     useEffect(() => {
         readInfoBattery(setData);
@@ -126,11 +130,11 @@ const DivCenterBattery = (props: any) => {
 
                     {/* Battery Level */}
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
-                        <label htmlFor="my_modal_2"
+                        <label htmlFor="battery_modal_1"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
                             {data?.battery_level}%
                         </label>
-                        <ModalUDS id="my_modal_2" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" manual={false} setter={setData}/>
+                        <ModalUDS id="battery_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" manual={false} setter={setData}/>
                         <p>Battery level</p>
                     </div>
 
@@ -209,11 +213,11 @@ const DivCenterBattery = (props: any) => {
 
                 {/* Battery percentage */}
                 <div className="w-[30%] m-7 text-white grid justify-items-start">
-                    <label htmlFor="my_modal_8"
+                    <label htmlFor="battery_modal_2"
                         className="inline-flex items-center justify-center p-2 bg-green-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-green-700">
                         {data?.percentage}%
                     </label>
-                    <ModalUDS id="my_modal_8" cardTitle={'Battery percentage'} writeInfo={writeInfoBattery} param="percentage" manual={false} setter={setData}/>
+                    <ModalUDS id="battery_modal_2" cardTitle={'Battery percentage'} writeInfo={writeInfoBattery} param="percentage" manual={false} setter={setData}/>
                     <p>Battery percentage</p>
                 </div>
 
@@ -228,11 +232,11 @@ const DivCenterBattery = (props: any) => {
 
                 {/* Voltage */}
                 <div className="w-[30%] m-7 text-white grid justify-items-start">
-                    <label htmlFor="my_modal_10"
+                    <label htmlFor="battery_modal_3"
                         className="inline-flex items-center justify-center p-2 bg-purple-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-purple-700">
                         {data?.voltage}V
                     </label>
-                    <ModalUDS id="my_modal_10" cardTitle={'Voltage'} writeInfo={writeInfoBattery} param="voltage" manual={false} setter={setData}/>
+                    <ModalUDS id="battery_modal_3" cardTitle={'Voltage'} writeInfo={writeInfoBattery} param="voltage" manual={false} setter={setData}/>
                     <p>Voltage</p>
                 </div>
 
