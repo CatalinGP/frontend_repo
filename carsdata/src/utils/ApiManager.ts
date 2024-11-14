@@ -1,14 +1,14 @@
 /* Types for the item flag (used to read a single attribute) */
 export type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
-                           'range_battery' | 'charging_time' | 'device_consumption';
+    'range_battery' | 'charging_time' | 'device_consumption';
 
 export type DoorsItems = 'door' | 'passenger' | 'driver' | 'passenger_lock' | 'ajar';
 
 export type EngineItems = 'engine_rpm' | 'coolant_temperature' | 'throttle_position' | 'vehicle_speed' | 'engine_load' | 'fuel_level' |
-                          'oil_temperature' | 'fuel_pressure' | 'intake_air_temperature' | 'transmission_status';
+    'oil_temperature' | 'fuel_pressure' | 'intake_air_temperature' | 'transmission_status';
 
 export type HvacItems = 'mass_air_flow' | 'ambient_air_temperature' | 'cabin_temperature' | 'cabin_temperature_driver_set' |
-                        'fan_speed' | 'hvac_modes';
+    'fan_speed' | 'hvac_modes';
 
 type Item = BatteryItems | DoorsItems | EngineItems | HvacItems;
 
@@ -39,7 +39,7 @@ type RouteInfo = {
  * value : an EndpointInfo structure containing the information described above
 */
 export const Endpoints: Record<string, EndpointInfo> = {
-    READ_BATTERY: { 
+    READ_BATTERY: {
         url: 'http://127.0.0.1:5000/api/read_info_battery',
         method: 'GET',
         need_manual_flow: true,
@@ -201,8 +201,8 @@ class ApiManager {
      *   - manual_flow : value for the is_manual_flow flag for the services that support it
      *   - item : value of the item flag for the services that support it
     */
-    async apiCall(endpoint: EndpointInfo, 
-                  options: { json?: object | null; manual_flow?: boolean; item?: Item | null } = {}): Promise<any> {
+    async apiCall(endpoint: EndpointInfo,
+        options: { json?: object | null; manual_flow?: boolean; item?: Item | null } = {}): Promise<any> {
 
         /* Set default values using destructuring for the options that were not provided */
         const { json = null, manual_flow = false, item = null } = options;
@@ -213,7 +213,7 @@ class ApiManager {
         }
 
         /* Error case: POST endpoint with empty payload */
-        if(endpoint.method === 'POST' && json === null) {
+        if (endpoint.method === 'POST' && json === null) {
             throw new Error('apiCall: Payload JSON is null!');
         }
 
@@ -239,7 +239,7 @@ class ApiManager {
         const response = await fetch(url, fetch_options);
 
         /* Error case: response is not ok (code between 200-299) */
-        if(!response.ok) {
+        if (!response.ok) {
             throw new Error(`apiCall: Error: ${response.status} ${response.statusText}`);
         }
 
@@ -250,7 +250,7 @@ class ApiManager {
     /* Method that takes care of the API route calls and returns the response:
      * route : contains the informations of a given endpoint (Example of usage: Routes.DB_GET_AVAILABLE_VERSIONS)
     */
-    async routeCall (route: RouteInfo): Promise<any> {
+    async routeCall(route: RouteInfo): Promise<any> {
 
         /* Error case: invalid endpoint */
         if (!route) {
@@ -269,7 +269,7 @@ class ApiManager {
         const response = await fetch(path, options);
 
         /* Error case: response is not ok */
-        if(!response.ok) {
+        if (!response.ok) {
             throw new Error(`routeCall: Error: ${response.status} ${response.statusText}`);
         }
 
