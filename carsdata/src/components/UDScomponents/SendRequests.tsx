@@ -10,6 +10,7 @@ import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors';
 import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
 import { BatteryItems } from '@/src/utils/ApiManager';
+import { apiManager, Endpoints } from '@/src/utils/ApiManager';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -127,45 +128,24 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    /* Function that reads the data about MCU & ECUs IDs */
     const requestIds = async (initialRequest: boolean) => {
-        displayLoadingCircle();
-        console.log("Requesting ids...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/request_ids`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    if (!initialRequest) {
-                        setData23(data);
-                        fetchLogs();
-                    } else {
-                        /* making a single block for each function */
-                        if (data.mcu_id == null) {
-                            [setDisableFrameAndDtcBtns, setDisableRequestIdsBtn, setDisableUpdateToVersionBtn,
-                             setDisableInfoBatteryBtns, setDisableInfoEngineBtns, setDisableInfoDoorsBtns]
-                            .forEach(setFunction => setFunction(true));
-                        }
-                        /* map with all ecu to activate and deactivate functions */
-                        const ecuMappings = [
-                            { index: 0, disableFunction: setDisableInfoBatteryBtns, enableFunction: () => readInfoBattery(setData23, {manual_flow: true}) },
-                            { index: 1, disableFunction: setDisableInfoEngineBtns },
-                            { index: 2, disableFunction: setDisableInfoDoorsBtns },
-                            { index: 3, disableFunction: setDisableInfoHvacsBtns }
-                        ];
-                        /* map iterration to apply enable/disable functions */
-                        ecuMappings.forEach(({ index, disableFunction, enableFunction }) => {
-                            data.ecu_ids[index] === '00' ? disableFunction(true) : enableFunction?.();
-                        });
-                    }
-                });
+            displayLoadingCircle();
+            /* Use API Manager to do the API call */
+            const data = await apiManager.apiCall(Endpoints.REQUEST_IDS)
+            setData23(data);
+            /* If communication was intrerrupted, log error */
+            if (data?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+            /* Handler for errors returned by API Manager */
         } catch (error) {
-            console.log(error);
+            console.error("Error during read operation: ", error);
             displayErrorPopup("Connection failed");
-            removeLoadingCicle();
-        }
-        removeLoadingCicle();
-    }
+        } finally { removeLoadingCicle(); }
+    };
 
     const updateToVersion = async () => {
         displayLoadingCircle();
@@ -288,7 +268,7 @@ const SendRequests = () => {
 
     const changeSession = async () => {
         let sessiontype: any;
-        
+
         // Define session type based on the current session state
         sessiontype = {
             sub_funct: session === "default" ? 2 : 1
@@ -343,11 +323,11 @@ const SendRequests = () => {
     const readAccessTiming = async () => {
         console.log("Reading access timing...");
         let readAccessTimingType: any;
-        
+
         readAccessTimingType = {
             sub_funct: accessTiming === "current" ? 3 : 1
         };
-        
+
         console.log(readAccessTimingType);
         displayLoadingCircle();
         try {
@@ -369,7 +349,7 @@ const SendRequests = () => {
                         setAccessTiming(accessTiming === "current" ? "default" : "current");
                         displayErrorPopup(accessTiming === "current" ? "Current access timing" : "Default access timing");
                     }
-                    
+
                 })
         } catch (error) {
             console.log(error);
@@ -634,11 +614,11 @@ const SendRequests = () => {
                         </button>
                         {/* {isDropdownOpen && ( */}
                         <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true}) }}>All params</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'battery_level'}) }}>Battery level</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'state_of_charge'}) }}>State of charge</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'percentage'}) }}>Percentage</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, {manual_flow: true, item: 'voltage'}) }}>Voltage</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true }) }}>All params</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'battery_level' }) }}>Battery level</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'state_of_charge' }) }}>State of charge</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'percentage' }) }}>Percentage</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'voltage' }) }}>Voltage</a></li>
                         </ul>
                         {/* )} */}
                     </div>
