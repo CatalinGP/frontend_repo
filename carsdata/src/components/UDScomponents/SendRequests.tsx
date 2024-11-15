@@ -820,7 +820,7 @@ const SendRequests = () => {
                     </button> */}
 
 
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(true, setData23) }}>Read Info Hvac</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(setData23, {manual_flow: true}) }}>Read Info Hvac</button>
 
                     <div className="dropdown">
                         <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenHVAC(!isDropdownOpenHVAC)} disabled={disableInfoHvacBtns}>
