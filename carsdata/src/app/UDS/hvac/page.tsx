@@ -7,7 +7,7 @@ const HvacPage = () => {
     return (
         <div className="flex h-full">
            
-                <DivLeft /><DivCenterHvac image={"/engine.svg"} /><DivRight />
+                <DivLeft /><DivCenterHvac image={"/hvac-icon.svg"} /><DivRight />
             
         </div>
     );

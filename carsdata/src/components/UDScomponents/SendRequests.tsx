@@ -39,6 +39,7 @@ const SendRequests = () => {
     const [selectedECU, setSelectedECU] = useState<string>("Select ECU");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isDropDownOpenBattery, setIsDropdownOpenBattery] = useState(false);
+    const [isDropDownOpenDoors, setIsDropdownOpenDoors] = useState(false);
     const [isDropDownOpenEngine, setIsDropdownOpenEngine] = useState(false);
     const [isDropdownOpenHVAC, setIsDropdownOpenHVAC] = useState(false);
     const [engineCardTitle, setEngineCardTitle] = useState("");
@@ -591,6 +592,8 @@ const SendRequests = () => {
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
                 </div>
+
+                
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div className="mt-2">
                     <div className="dropdown">
@@ -656,7 +659,72 @@ const SendRequests = () => {
                         )}
 
                     </div>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(setData23, { manual_flow: true }) }}>Read Info Engine</button>
+                  
+                    <div className="dropdown">
+                        <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoDoorsBtns}>
+                            Read doors param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {/* {isDropdownOpen && ( */}
+                        <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true}) }}>All params</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'door'}) }}>Door</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'passenger'}) }}>Passenger</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'passenger_lock'}) }}>Passenger Lock</a></li>
+                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'ajar'}) }}>Ajar</a></li>
+                        </ul>
+                        {/* )} */}
+                    </div>
+                    <div className="dropdown">
+                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenDoors(!isDropDownOpenDoors)} disabled={disableInfoDoorsBtns}>
+                            Write doors param
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        {isDropDownOpenBattery && (
+                            <div>
+                                <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <li>
+                                        <label htmlFor="my_modal_10">
+                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Door</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Passenger</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Passenger Lock</a>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label htmlFor="my_modal_7">
+                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Ajar</a>
+                                        </label>
+                                    </li>
+                                </ul>
+                                <ModalUDS id="my_modal_10" cardTitle={'Doors'} writeInfo={writeInfoDoors} param="door" manual={false} setter={setData23} />
+                            </div>
+                        )}
+
+                    </div>
+
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(setData23, {manual_flow: true}) }}>Read Info Engine</button>
 
                     <div className="dropdown">
                         <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
@@ -724,9 +792,9 @@ const SendRequests = () => {
                         )}
 
                     </div>
-                    <button
+                    {/* <button
                         className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
-                        onClick={() => readInfoDoors(true, setData23)}
+                        onClick={() => readInfoDoors(setData23, {manual_flow: true})}
                         disabled={disableInfoDoorsBtns}
                     >
                         Read Info Doors
@@ -738,10 +806,10 @@ const SendRequests = () => {
                         disabled={disableInfoDoorsBtns}
                     >
                         Write Info Doors
-                    </button>
+                    </button> */}
 
 
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(true, setData23) }}>Read Info Hvac</button>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(setData23, {manual_flow: true}) }}>Read Info Hvac</button>
 
                     <div className="dropdown">
                         <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenHVAC(!isDropdownOpenHVAC)} disabled={disableInfoHvacBtns}>
