@@ -79,35 +79,28 @@ const SendRequests = () => {
     }
 
     // Send a CAN frame to the server
-    const sendFrame = async () => {
-        if (!canId || !canData) {
-            alert('CAN ID and CAN Data cannot be empty.');
-            return;
-        }
-        displayLoadingCircle();
-        console.log("Sending frames...");
-        console.log({
-            can_id: canId,
-            can_data: canData
-        });
-        await fetch(`http://127.0.0.1:5000/api/send_frame`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+    const sendFrame = async (initialRequest: any) => {
+        try {
+            displayLoadingCircle();
+            /* Function for reading data from json */
+            const data_sent = {
                 can_id: canId,
                 can_data: canData
-            }),
-        }).then(response => response.json())
-            .then(data => {
-                setData23(data);
-                console.log(data);
-                fetchLogs();
-                setDisableConvertBtn(false);
-            });
-        removeLoadingCicle();
-    }
+            }
+            /* Use API Manager to do the API call */
+            const data = await apiManager.apiCall(Endpoints.SEND_FRAME, { json: data_sent })
+            setData23(data);
+            /* If communication was intrerrupted, log error */
+            if (data?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+            /* Handler for errors returned by API Manager */
+        } catch (error) {
+            console.error("Error during read operation: ", error);
+            displayErrorPopup("Connection failed");
+        } finally { removeLoadingCicle(); }
+    };
 
     // Read Diagnostic Trouble Codes (DTC)
     const readDTC = async () => {
@@ -666,7 +659,6 @@ const SendRequests = () => {
                         )}
 
                     </div>
-
                   
                     <div className="dropdown">
                         <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoDoorsBtns}>
@@ -732,10 +724,7 @@ const SendRequests = () => {
 
                     </div>
 
-
-
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(setData23, {manual_flow: true}) }}>Read Info Engine</button>
-
 
                     <div className="dropdown">
                         <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
