@@ -177,6 +177,13 @@ export const Endpoints: Record<string, EndpointInfo> = {
         method: 'POST',
         need_manual_flow: false,
         supports_item_flag: false
+    },
+
+    CLEAR_DTC: {
+        url: 'http://127.0.0.1:5000/api/clear_dtc_info',
+        method: 'POST',
+        need_manual_flow: false,
+        supports_item_flag: false
     }
 };
 
