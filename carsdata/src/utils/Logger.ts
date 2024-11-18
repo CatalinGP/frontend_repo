@@ -1,9 +1,13 @@
 class Logger {
+    /* The array that will hold logs */
     private logs: string[];
 
+    /* Key used to store logs in the sessionStorage */
+    private storageKey: string = 'logs';
+
     constructor() {
-        /* Retrieve stored logs from local storage. If none exists initialize empty array */
-        const storedLogs = localStorage.getItem('logs');
+        /* Retrieve stored logs from session storage. If none exists initialize empty array */
+        const storedLogs = sessionStorage.getItem(this.storageKey);
         this.logs = storedLogs ? JSON.parse(storedLogs) : [];
 
         /* Intercept console methods to capture logs
@@ -57,8 +61,25 @@ class Logger {
         const log_msg = `${formattedDate} [${level}]: ${logMsgParts.join(' ')}`;
         this.logs.push(log_msg);
 
-        /* Store the updated logs array into the local storage */
-        localStorage.setItem('logs', JSON.stringify(this.logs));
+        /* Store the updated logs array into the session storage */
+        this.storeLogs();
+    }
+
+    /* Store the logs into sessionStorage */
+    private storeLogs(): void {
+        try {
+            sessionStorage.setItem(this.storageKey, JSON.stringify(this.logs));
+        } catch (e) {
+            if (e instanceof DOMException) {
+                console.warn('Session storage is full. Logs will be pruned!');
+                
+                /* Prune logs if storage exceeds capacity and try again*/
+                this.logs = this.logs.slice(Math.floor(this.logs.length / 2));
+                this.storeLogs();
+            } else {
+                console.error('Unknown error occurred while saving logs:', e);
+            }
+        }
     }
 
     /* Dummy method that does nothing. Used at the beginning of the file to make sure the import is not ignored */
@@ -69,7 +90,7 @@ class Logger {
     /* When is called, the logs are downloaded as a text file */
     public downloadLogs(): void {
 
-        const storedLogs = localStorage.getItem('logs');
+        const storedLogs = sessionStorage.getItem(this.storageKey);
         const logsToDownload = storedLogs ? JSON.parse(storedLogs) : [];
 
         /* Check if there are logs to download */
@@ -93,9 +114,9 @@ class Logger {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        /* After the download, clears the logs array and the local storage */
+        /* After the download, clears the logs array and the session storage */
         this.logs = [];
-        localStorage.removeItem('logs');
+        sessionStorage.removeItem(this.storageKey);
     }
 }
 
