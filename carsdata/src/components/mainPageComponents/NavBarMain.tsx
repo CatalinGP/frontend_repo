@@ -16,7 +16,7 @@ const NavBarMain = ({ isVinSubmitted }: NavBarMainProps) => {
                         {isVinSubmitted && (
                             <>
                                 <li><Link href="/ota">OTA</Link></li>
-                                <li><Link href="/UDS">UDS</Link></li>
+                                <li><Link href="/UDS/mcu">UDS</Link></li>
                             </>
                         )}
                         <li><Link href="/login">Log In</Link></li>

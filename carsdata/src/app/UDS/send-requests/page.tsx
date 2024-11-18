@@ -4,11 +4,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const SendRequestsPage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><SendRequests />
-            
-        </div>
+        <DivLeft>
+            <SendRequests />
+        </DivLeft>
     );
 };
 

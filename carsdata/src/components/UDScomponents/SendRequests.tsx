@@ -11,6 +11,7 @@ import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
 import { BatteryItems } from '@/src/utils/ApiManager';
 import { apiManager, Endpoints } from '@/src/utils/ApiManager';
+import ModalHvacModes from './ModalHvacModes';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -30,7 +31,7 @@ const SendRequests = () => {
     const [disableInfoBatteryBtns, setDisableInfoBatteryBtns] = useState<boolean>(false);
     const [disableInfoEngineBtns, setDisableInfoEngineBtns] = useState<boolean>(false);
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
-    const [disableInfoHvacBtns, setDisableInfoHvacsBtns] = useState<boolean>(false);
+    const [disableInfoHvacBtns, setDisableInfoHvacBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
     const [session, setSession] = useState<string>("default");
     const [testerPres, setTesterPres] = useState<string>("disabled");
@@ -38,27 +39,8 @@ const SendRequests = () => {
     const [selectedECUid, setSelectedECUid] = useState<string>("");
     const [selectedECU, setSelectedECU] = useState<string>("Select ECU");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isDropDownOpenBattery, setIsDropdownOpenBattery] = useState(false);
-    const [isDropDownOpenDoors, setIsDropdownOpenDoors] = useState(false);
-    const [isDropDownOpenEngine, setIsDropdownOpenEngine] = useState(false);
-    const [isDropdownOpenHVAC, setIsDropdownOpenHVAC] = useState(false);
-    const [engineCardTitle, setEngineCardTitle] = useState("");
-    const [hvacCardTitle, setHvacCardTitle] = useState("");
-    const [paramEngine, setParamEngine] = useState("");
-    const [paramHvac, setParamHvac] = useState("");
-
-
-    const dropdownEngineItemClick = (cardTitle: string, param: string) => {
-        setIsDropdownOpenEngine(false);
-        setEngineCardTitle(cardTitle);
-        setParamEngine(param);
-    }
-
-    const dropdownHVACItemClick = (cardTitle: string, param: string) => {
-        setIsDropdownOpenHVAC(false);
-        setHvacCardTitle(cardTitle);
-        setParamHvac(param);
-    }
+    const [cardTitle, setCardTitle] = useState("");
+    const [paramToEdit, setParamToEdit] = useState("");
 
     const fetchLogs = async () => {
         displayLoadingCircle();
@@ -167,7 +149,6 @@ const SendRequests = () => {
         }
         removeLoadingCicle();
     }
-
 
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
         displayLoadingCircle();
@@ -544,7 +525,7 @@ const SendRequests = () => {
                                 />
                             </button>
                             {isDropdownOpen && (
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
                                     <li><a onClick={() => { setSelectedECUid("10"); setSelectedECU("MCU"); setIsDropdownOpen(false) }}>MCU</a></li>
                                     <li><a onClick={() => { setSelectedECUid("11"); setSelectedECU("Battery"); setIsDropdownOpen(false) }}>Battery</a></li>
                                     {/* <li><a onClick={() => { setSelectedECUid("12"); setSelectedECU("Engine"); setIsDropdownOpen(false) }}>Engine</a></li>
@@ -567,7 +548,7 @@ const SendRequests = () => {
                                 />
                             </button>
                             {isDropdownOpen && (
-                                <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
                                     <li><a onClick={() => { ecuReset("soft"); setIsDropdownOpen(false) }}>Soft</a></li>
                                     <li><a onClick={() => { ecuReset("hard"); setIsDropdownOpen(false) }}>Hard</a></li>
                                 </ul>
@@ -584,286 +565,275 @@ const SendRequests = () => {
                 </div>
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div>
-                    <button className="btn btn-success w-fit mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
-                    {/* <button className="btn btn-success w-fit ml-5 mt-2 text-white" onClick={hexToAscii} disabled={disableConvertBtn}>Convert response to ASCII</button> */}
-                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
-                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
-                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
+
+
+                    <div className="dropdown">
+                        <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoBatteryBtns}>
+                            Read Battery Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true }) }}>All params</a></li>
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'battery_level' }) }}>Battery level</a></li>
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'state_of_charge' }) }}>State of charge</a></li>
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'percentage' }) }}>Percentage</a></li>
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'voltage' }) }}>Voltage</a></li>
+                        </ul>
+                    </div>
+
+
+                    <div className="dropdown">
+                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoBatteryBtns}>
+                            Write Battery Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                            <li>
+                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("Battery level"), setParamToEdit("battery_level") }}>Battery level</label>
+                            </li>
+                            <li>
+                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("State of charge"), setParamToEdit("state_of_charge") }}>State of charge</label>
+                            </li>
+                            <li>
+                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("Percentage"), setParamToEdit("percentage") }}>Percentage</label>
+                            </li>
+                            <li>
+                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("Voltage"), setParamToEdit("voltage") }}>Voltage</label>
+                            </li>
+                        </ul>
+                        <ModalUDS id="my_modal_7" cardTitle={cardTitle} writeInfo={writeInfoBattery} param={paramToEdit} manual={true} setter={setData23} />
+                    </div>
+
+
+                    <div className="dropdown">
+                        <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoEngineBtns}>
+                            Read Engine Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true }) }} >All params</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'coolant_temperature' }) }} >Coolant temperature</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'engine_load' }) }} >Engine load</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'engine_rpm' }) }} >RPM</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'fuel_level' }) }} >Fuel</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'fuel_pressure' }) }} >Fuel pressure</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'intake_air_temperature' }) }} >Intake air temperature</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'oil_temperature' }) }} >Oil temperature</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'throttle_position' }) }} >Throttle position</a></li>
+                            <li><a onClick={() => { readInfoEngine(setData23, { manual_flow: true, item: 'vehicle_speed' }) }} >Speed</a></li>
+                        </ul>
+                    </div>
+
+
+                    <div className="dropdown">
+                        <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoEngineBtns}>
+                            Write Engine Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={5} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Coolant temperature"), setParamToEdit("coolant_temperature") }}>Coolant temperature</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Load"), setParamToEdit("engine_load") }} >Engine load</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("RPM"), setParamToEdit("engine_rpm") }} >RPM</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Fuel"), setParamToEdit("fuel_level") }} >Fuel</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Fuel pressure"), setParamToEdit("fuel_pressure") }} >Fuel pressure</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Intake air temperature"), setParamToEdit("intake_air_temperature") }} >Intake air temperature</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Oil temperature"), setParamToEdit("oil_temperature") }} >Oil temperature</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Throttle position"), setParamToEdit("throttle_position") }} >Throttle position</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_8" onClick={() => { setCardTitle("Speed"), setParamToEdit("vehicle_speed") }} >Speed</label>
+                                </li>
+                            </ul>
+                            <ModalUDS id="my_modal_8" cardTitle={cardTitle} writeInfo={writeInfoEngine} param={paramToEdit} manual={true} setter={setData23} />
+                        </div>
+                    </div>
+
+                    <div className="dropdown">
+                        <button tabIndex={6} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoDoorsBtns}>
+                            Read Doors Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <ul tabIndex={6} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                            <li><a onClick={() => { readInfoDoors(setData23, { manual_flow: true }) }} >All params</a></li>
+                            <li><a onClick={() => { readInfoDoors(setData23, { manual_flow: true, item: 'ajar' }) }} >Ajar</a></li>
+                            <li><a onClick={() => { readInfoDoors(setData23, { manual_flow: true, item: 'door' }) }} >Door</a></li>
+                            <li><a onClick={() => { readInfoDoors(setData23, { manual_flow: true, item: 'passenger' }) }} >Passenger</a></li>
+                            <li><a onClick={() => { readInfoDoors(setData23, { manual_flow: true, item: 'passenger_lock' }) }} >Passenger lock</a></li>
+                        </ul>
+                    </div>
+
+                    <div className="dropdown">
+                        <button tabIndex={7} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoDoorsBtns}>
+                            Write Doors Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={7} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li>
+                                    <label htmlFor="my_modal_9" onClick={() => { setCardTitle("Ajar"), setParamToEdit("ajar") }} >Ajar</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_9" onClick={() => { setCardTitle("Door"), setParamToEdit("door") }} >Door</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_9" onClick={() => { setCardTitle("Passenger"), setParamToEdit("passenger") }} >Passenger</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_9" onClick={() => { setCardTitle("Passenger lock"), setParamToEdit("passenger_lock") }} >Passenger lock</label>
+                                </li>
+                            </ul>
+                            <ModalUDS id="my_modal_9" cardTitle={cardTitle} writeInfo={writeInfoDoors} param={paramToEdit} manual={true} setter={setData23} />
+                        </div>
+                    </div>
+
+
+                    <div className="dropdown">
+                        <button tabIndex={8} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoHvacBtns}>
+                            Read HVAC Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <ul tabIndex={8} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true }) }} >All params</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'ambient_air_temperature' }) }} >Ambient temperature</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'cabin_temperature' }) }} >Cabin temperature</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'cabin_temperature_driver_set' }) }} >Driver seat</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'fan_speed' }) }} >Fan speed</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'hvac_modes' }) }} >HVAC modes</a></li>
+                            <li><a onClick={() => { readInfoHVAC(setData23, { manual_flow: true, item: 'mass_air_flow' }) }} >Mass air flow</a></li>
+                        </ul>
+                    </div>
+
+                    <div className="dropdown">
+                        <button tabIndex={9} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoHvacBtns}>
+                            Write HVAC Info
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={9} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li>
+                                    <label htmlFor="my_modal_10" onClick={() => { setCardTitle("Ambient air temperature"), setParamToEdit("ambient_air_temperature"); }}>Ambient temperature</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_10" onClick={() => { setCardTitle("Cabin temperature"), setParamToEdit("cabin_temperature"); }}>Cabin temperature</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_10" onClick={() => { setCardTitle("Cabin temperature driver set"), setParamToEdit("cabin_temperature_driver_set"); }}>Driver seat</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_10" onClick={() => { setCardTitle("Fan speed"), setParamToEdit("fan_speed"); }}>Fan speed</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_11" onClick={() => { setCardTitle("Hvac modes"), setParamToEdit("hvac_modes"); }}>Hvac modes</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="my_modal_10" onClick={() => { setCardTitle("Mass air flow"), setParamToEdit("mass_air_flow"); }}>Mass air flow</label>
+                                </li>
+                            </ul>
+                            <ModalUDS id="my_modal_10" cardTitle={cardTitle} writeInfo={writeInfoHvac} param={paramToEdit} manual={true} setter={setData23} />
+                            <ModalHvacModes id="my_modal_11" writeInfo={writeInfoHvac} manual={true} setter={setData23} />
+                        </div>
+                    </div>
+                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" >Google Drive Info</button>
                 </div>
 
-                
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
+
                 <div className="mt-2">
-                    <div className="dropdown">
-                        <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoBatteryBtns}>
-                            Read battery param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {/* {isDropdownOpen && ( */}
-                        <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true }) }}>All params</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'battery_level' }) }}>Battery level</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'state_of_charge' }) }}>State of charge</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'percentage' }) }}>Percentage</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoBattery(setData23, { manual_flow: true, item: 'voltage' }) }}>Voltage</a></li>
-                        </ul>
-                        {/* )} */}
-                    </div>
-                    <div className="dropdown">
-                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenBattery(!isDropDownOpenBattery)} disabled={disableInfoBatteryBtns}>
-                            Write battery param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {isDropDownOpenBattery && (
-                            <div>
-                                <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Battery level</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >State of charge</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Percentage</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenBattery(false) }} >Voltage</a>
-                                        </label>
-                                    </li>
-                                </ul>
-                                <ModalUDS id="my_modal_7" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" manual={false} setter={setData23} />
-                            </div>
-                        )}
+                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
+                    <button className="btn btn-success w-fit ml-1 mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
+                    <button className="btn btn-success w-fit ml-1 mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Clear DTC</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
 
-                    </div>
-                  
-                    <div className="dropdown">
-                        <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpen(!isDropdownOpen)} disabled={disableInfoDoorsBtns}>
-                            Read doors param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {/* {isDropdownOpen && ( */}
-                        <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true}) }}>All params</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'door'}) }}>Door</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'passenger'}) }}>Passenger</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'passenger_lock'}) }}>Passenger Lock</a></li>
-                            <li><a onClick={() => { setIsDropdownOpen(false); readInfoDoors(setData23, {manual_flow: true, item: 'ajar'}) }}>Ajar</a></li>
-                        </ul>
-                        {/* )} */}
-                    </div>
-                    <div className="dropdown">
-                        <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenDoors(!isDropDownOpenDoors)} disabled={disableInfoDoorsBtns}>
-                            Write doors param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {isDropDownOpenBattery && (
-                            <div>
-                                <ul tabIndex={3} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <li>
-                                        <label htmlFor="my_modal_10">
-                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Door</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Passenger</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Passenger Lock</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_7">
-                                            <a onClick={() => { setIsDropdownOpenDoors(false) }} >Ajar</a>
-                                        </label>
-                                    </li>
-                                </ul>
-                                <ModalUDS id="my_modal_10" cardTitle={'Doors'} writeInfo={writeInfoDoors} param="door" manual={false} setter={setData23} />
-                            </div>
-                        )}
+                    <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Read Timing</button>
 
-                    </div>
+                    <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
+                    <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
 
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoEngine(setData23, {manual_flow: true}) }}>Read Info Engine</button>
-
-                    <div className="dropdown">
-                        <button tabIndex={4} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenEngine(!isDropDownOpenEngine)} disabled={disableInfoEngineBtns}>
-                            Write engine param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {isDropDownOpenEngine && (
-                            <div>
-                                <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Coolant temperature", "coolant_temperature") }} >Coolant temperature</a>
-                                        </label>
+                    {data23 && (
+                        <div>
+                            <h1 className="text-2xl mt-2">Response</h1>
+                            <ul className="m-2 p-2 list-disc">
+                                {Object.entries(data23).map(([key, value]) => (
+                                    <li key={key}>
+                                        <strong>{key}:</strong> {JSON.stringify(value)}
                                     </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Load", "engine_load") }} >Engine load</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("RPM", "engine_rpm") }} >RPM</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Fuel", "fuel_level") }} >Fuel</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Fuel pressure", "Fuel pressure") }} >Fuel pressure</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Intake air temperature", "intake_air_temperature") }} >Intake air temperature</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Oil temperature", "oil_temperature") }} >Oil temperature</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Throttle position", "throttle_position") }} >Throttle position</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_8">
-                                            <a onClick={() => { dropdownEngineItemClick("Speed", "vehicle_speed") }} >Speed</a>
-                                        </label>
-                                    </li>
-                                </ul>
-                                <ModalUDS id="my_modal_8" cardTitle={engineCardTitle} writeInfo={writeInfoBattery} param={paramEngine} manual={false} setter={setData23} />
-                            </div>
-                        )}
-
-                    </div>
-                    {/* <button
-                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
-                        onClick={() => readInfoDoors(setData23, {manual_flow: true})}
-                        disabled={disableInfoDoorsBtns}
-                    >
-                        Read Info Doors
-                    </button>
-
-                    <button
-                        className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white"
-                        onClick={() => writeInfoDoors(setData23)}
-                        disabled={disableInfoDoorsBtns}
-                    >
-                        Write Info Doors
-                    </button> */}
-
-
-                    <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => { setIsDropdownOpen(false); readInfoHVAC(setData23, {manual_flow: true}) }}>Read Info Hvac</button>
-
-                    <div className="dropdown">
-                        <button tabIndex={5} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" onClick={() => setIsDropdownOpenHVAC(!isDropdownOpenHVAC)} disabled={disableInfoHvacBtns}>
-                            Write HVAC param
-                            <Image
-                                src="/dropdownarrow.png"
-                                alt="Dropdown arrow icon"
-                                className="dark:invert m-1 hover:object-scale-down"
-                                width={10}
-                                height={10}
-                                priority
-                            />
-                        </button>
-                        {isDropdownOpenHVAC && (
-                            <div>
-                                <ul tabIndex={5} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <li>
-                                        <label htmlFor="my_modal_9">
-                                            <a onClick={() => { dropdownHVACItemClick("Ambient air temperature", "ambient_air_temperature"); }}>Ambient air temperature</a>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label htmlFor="my_modal_9">
-                                            <a onClick={() => { dropdownHVACItemClick("Cabin temperature driver set", "cabin_temperature_driver_set"); }}>Cabin temperature driver set</a>
-                                        </label>
-                                        <li>
-                                            <label htmlFor="my_modal_9">
-                                                <a onClick={() => { dropdownHVACItemClick("Fan speed", "fan_speed"); }}>Fan speed</a>
-                                            </label>
-                                            <label htmlFor="my_modal_9">
-                                                <a onClick={() => { dropdownHVACItemClick("Mass air flow", "mass_air_flow"); }}>Mass air flow</a>
-                                            </label>
-                                        </li>
-                                    </li>
-                                </ul>
-                                <ModalUDS id="my_modal_8" cardTitle={hvacCardTitle} writeInfo={writeInfoHvac} param={paramHvac} setter={setData23} />
-
-
-                            </div>
-                        )}
-                        {data23 && (
-                            <div>
-                                <h1 className="text-2xl mt-2">Response</h1>
-                                <ul className="m-2 p-2 list-disc">
-                                    {Object.entries(data23).map(([key, value]) => (
-                                        <li key={key}>
-                                            <strong>{key}:</strong> {JSON.stringify(value)}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                    </div>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     <div className="m-2 border-2 border-black overflow-x-auto max-h-52">
                         <h1 className="text-2xl mt-2">Logs:</h1>
@@ -887,7 +857,7 @@ const SendRequests = () => {
                 </div >
             </div>
         </div >
-
     )
 }
-export default SendRequests
+
+export default SendRequests;
