@@ -209,10 +209,22 @@ class ApiManager {
      *   - item : value of the item flag for the services that support it
     */
     async apiCall(endpoint: EndpointInfo,
-        options: { json?: object | null; manual_flow?: boolean; item?: Item | null } = {}): Promise<any> {
+        options: { json?: object | null; 
+                   manual_flow?: boolean; 
+                   item?: Item | null;
+                   ecu_id?: '0x11' | '0x12';
+                   read_dtc_subfunc?: '1' | '2';
+                   dtc_mask_bits?: string[]} = {}): Promise<any> {
 
         /* Set default values using destructuring for the options that were not provided */
-        const { json = null, manual_flow = false, item = null } = options;
+        const { json = null, 
+                manual_flow = false, 
+                item = null,
+                ecu_id = null,
+                read_dtc_subfunc = null,
+                dtc_mask_bits = []} = options;
+
+    /*** Treat different error cases to ensure the parameters were provided correctly ***/
 
         /* Error case: invalid endpoint */
         if (!endpoint) {
@@ -223,16 +235,45 @@ class ApiManager {
         if (endpoint.method === 'POST' && json === null) {
             throw new Error('apiCall: Payload JSON is null!');
         }
+            
+        /* Error case: Missing arguments for READ_DTC */
+        if (endpoint.url === Endpoints.READ_DTC.url) {
+            if (!ecu_id || !read_dtc_subfunc || dtc_mask_bits.length === 0) {
+                throw new Error('apiCall: Missing parameter for Read DTC.\nEnsure you have provided ecu_id, read_dtc_subfunc and dtc_mask_bits.');
+            }
+        }
 
-        /* Adds manual_flow flag in the url for the endpoints that need it (where need_manual_flag is true) */
+    /*** Construct URL for based on the flags supported ***/
+
         let url = endpoint.url;
-        if (endpoint.need_manual_flow) {
-            url += (url.includes('?') ? '&' : '?') + 'is_manual_flow=' + manual_flow;
+
+        /* If the called service is READ_DTC, construct URL with specific flags */
+        if (endpoint.url === Endpoints.READ_DTC.url) {
+            
+            /* Add ecu_id */
+            url += '?ecu_id=' + ecu_id;
+
+            /* Add subfunction */
+            url += '&subfunc=' + read_dtc_subfunc;
+
+            /* Add mask_bits */
+            for (const mask_bit of dtc_mask_bits) {
+                url+= '&dtc_mask_bits=' + mask_bit;
+            }
+        } else {
+            
+            /* Adds manual_flow flag in the url for the endpoints that need it (where need_manual_flag is true).
+               Also add item flag if needed */
+            if (endpoint.need_manual_flow) {
+                url += (url.includes('?') ? '&' : '?') + 'is_manual_flow=' + manual_flow;
+
+                if (endpoint.supports_item_flag && item) {
+                    url += (url.includes('?') ? '&' : '?') + 'item=' + item;
+                }
+            }
         }
 
-        if (endpoint.supports_item_flag && item) {
-            url += (url.includes('?') ? '&' : '?') + 'item=' + item;
-        }
+    /*** Prepare fetch options and fetch the response ***/
 
         /* Set up the options for the fetch request.
            If the method is POST, initialize the Content-Type in headers and also add the payload JSON */
