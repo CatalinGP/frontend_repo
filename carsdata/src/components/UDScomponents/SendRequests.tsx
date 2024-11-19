@@ -86,19 +86,24 @@ const SendRequests = () => {
 
     // Read Diagnostic Trouble Codes (DTC)
     const readDTC = async () => {
-        displayLoadingCircle();
-        console.log("Reading DTC...");
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_dtc_info`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
+            displayLoadingCircle();
+            const data = await apiManager.apiCall(Endpoints.READ_DTC, {
+                ecu_id: "0x11", 
+                read_dtc_subfunc: "1", 
+                dtc_mask_bits: ["warningIndicatorRequested", "confirmedDTC"]
+            });
+
+            console.log("API Response:", data);
+            setData23(data);
+            /* If communication was intrerrupted, log error */
+            if (data?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+
         } catch (error) {
-            removeLoadingCicle();
+            console.log("Read error", error)
             displayErrorPopup("can't read DTC ");
         }
         removeLoadingCicle();
@@ -122,6 +127,7 @@ const SendRequests = () => {
             displayErrorPopup("Connection failed");
         } finally { removeLoadingCicle(); }
     };
+
 
     const updateToVersion = async () => {
         displayLoadingCircle();
@@ -478,6 +484,23 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const renderDictionary = (data: any) => {
+        if (typeof data !== "object" || data === null) {
+            return <span>{String(data)}</span>;
+        }
+
+        return (
+            <ul className="list-disc ml-4">
+                {Object.entries(data).map(([key, value]) => (
+                    <li key={key}>
+                        <strong>{key}:</strong> {renderDictionary(value)}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
+
     useEffect(() => {
         requestIds(true);
     }, []);
@@ -618,6 +641,7 @@ const SendRequests = () => {
                         </ul>
                         <ModalUDS id="my_modal_7" cardTitle={cardTitle} writeInfo={writeInfoBattery} param={paramToEdit} manual={true} setter={setData23} />
                     </div>
+
 
 
                     <div className="dropdown">
