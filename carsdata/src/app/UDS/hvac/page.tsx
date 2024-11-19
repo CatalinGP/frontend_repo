@@ -5,11 +5,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const HvacPage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><DivCenterHvac image={"/hvac-icon.svg"} /><DivRight />
-            
-        </div>
+        <DivLeft>
+            <DivCenterHvac image={"/hvac-icon.svg"} /><DivRight />
+        </DivLeft>
     );
 };
 

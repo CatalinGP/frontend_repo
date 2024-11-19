@@ -5,11 +5,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const MCUPage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><DivCenterMCU image={"/carSketch2.svg"} /><DivRight />
-            
-        </div>
+        <DivLeft>
+            <DivCenterMCU image={"/carSketch2.svg"} /><DivRight />
+        </DivLeft>
     );
 };
 

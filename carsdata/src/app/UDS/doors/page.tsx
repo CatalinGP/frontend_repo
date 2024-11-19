@@ -5,11 +5,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const DoorsPage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><DivCenterDoors image={"/door.svg"} /><DivRight />
-            
-        </div>
+        <DivLeft>
+            <DivCenterDoors image={"/door.svg"} /><DivRight />
+        </DivLeft>
     );
 };
 

@@ -5,11 +5,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const BatteryPage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><DivCenterBattery image={"/battery.svg"} /><DivRight />
-            
-        </div>
+        <DivLeft>
+            <DivCenterBattery image={"/battery.svg"} /><DivRight />
+        </DivLeft>
     );
 };
 

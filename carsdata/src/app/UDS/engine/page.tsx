@@ -5,11 +5,9 @@ import DivLeft from '@/src/components/UDScomponents/DivLeft';
 
 const EnginePage = () => {
     return (
-        <div className="flex h-full">
-           
-                <DivLeft /><DivCenterEngine image={"/engine.svg"} /><DivRight />
-            
-        </div>
+        <DivLeft>
+            <DivCenterEngine image={"/engine.svg"} /><DivRight />
+        </DivLeft>
     );
 };
 
