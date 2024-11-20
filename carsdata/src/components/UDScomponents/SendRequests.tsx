@@ -11,7 +11,9 @@ import { HVACData, readInfoHVAC, writeInfoHvac } from './DivCenterHVAC';
 import logger from '@/src/utils/Logger';
 import { BatteryItems } from '@/src/utils/ApiManager';
 import { apiManager, Endpoints } from '@/src/utils/ApiManager';
+import { json } from 'stream/consumers';
 import ModalHvacModes from './ModalHvacModes';
+import ModalClearDTC from './ModalClearDTC';
 
 
 let intervalID: number | NodeJS.Timeout | null = null;
@@ -41,6 +43,9 @@ const SendRequests = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [cardTitle, setCardTitle] = useState("");
     const [paramToEdit, setParamToEdit] = useState("");
+    const [ecuId, setecuId] = useState("");
+    const [selectedDtc, setSelectedDtc] = useState("Select ECU Id");
+    const [disableClearDTC, setDisableClearDTC] = useState<boolean>(false);
 
     const fetchLogs = async () => {
         displayLoadingCircle();
@@ -103,6 +108,32 @@ const SendRequests = () => {
         }
         removeLoadingCicle();
     }
+
+    const clearDTC = async (ecu_id: string, dtc_group: string) => {
+        console.log("Clearing DTC...");
+        const data_sent = { ecu_id: ecu_id, dtc_group: dtc_group }
+        displayLoadingCircle();
+
+        try {
+            const response = await apiManager.apiCall(Endpoints.CLEAR_DTC, { json: data_sent });
+
+            if (response?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+            console.log(response);
+        } catch (error) {
+            console.error("Error during Clear DTC: ", error);
+            displayErrorPopup("Error during Clear DTC");
+        } finally {
+            removeLoadingCicle();
+        }
+    }
+
+    const handleOpenModal = (dtcType: any) => {
+        setSelectedDtc(dtcType);
+        setIsDropdownOpen(false);
+    };
 
     /* Function that reads the data about MCU & ECUs IDs */
     const requestIds = async (initialRequest: boolean) => {
@@ -566,8 +597,6 @@ const SendRequests = () => {
                 <div className="w-full h-px mt-2 bg-gray-300"></div>
                 <div>
                     <button className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" onClick={() => requestIds(false)} disabled={disableRequestIdsBtn}>Request IDs</button>
-
-
                     <div className="dropdown">
                         <button tabIndex={2} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoBatteryBtns}>
                             Read Battery Info
@@ -814,7 +843,32 @@ const SendRequests = () => {
                 <div className="mt-2">
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
                     <button className="btn btn-success w-fit ml-1 mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
-                    <button className="btn btn-success w-fit ml-1 mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Clear DTC</button>
+
+                    <div className="dropdown">
+                        <button tabIndex={10} className="btn btn-success w-fit ml-1 mt-2 text-white" disabled={disableClearDTC}>
+                            Clear DTC
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={7} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li>
+                                    <label htmlFor="clearDTC_modal" onClick={() => { setecuId("11") }} >Battery</label>
+                                </li>
+                                <li>
+                                    <label htmlFor="clearDTC_modal" onClick={() => { setecuId("12") }} >Engine</label>
+                                </li>
+                            </ul>
+                            <ModalClearDTC id="clearDTC_modal" ecu_id={ecuId} clearDTC={clearDTC} setter={setData23} />
+                        </div>
+                    </div>
+
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
 
                     <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Read Timing</button>
