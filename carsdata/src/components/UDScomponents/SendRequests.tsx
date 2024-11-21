@@ -640,7 +640,7 @@ const SendRequests = () => {
                         <ul tabIndex={2} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
                             <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true }) }}>All params</a></li>
                             <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'battery_level' }) }}>Battery level</a></li>
-                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'state_of_charge' }) }}>State of charge</a></li>
+                            <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'battery_state_of_charge' }) }}>State of charge</a></li>
                             <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'percentage' }) }}>Percentage</a></li>
                             <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'voltage' }) }}>Voltage</a></li>
                         </ul>
@@ -663,7 +663,7 @@ const SendRequests = () => {
                                 <label htmlFor="my_modal_7" onClick={() => { setCardTitle("Battery level"), setParamToEdit("battery_level") }}>Battery level</label>
                             </li>
                             <li>
-                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("State of charge"), setParamToEdit("state_of_charge") }}>State of charge</label>
+                                <label htmlFor="my_modal_7" onClick={() => { setCardTitle("State of charge"), setParamToEdit("battery_state_of_charge") }}>State of charge</label>
                             </li>
                             <li>
                                 <label htmlFor="my_modal_7" onClick={() => { setCardTitle("Percentage"), setParamToEdit("percentage") }}>Percentage</label>

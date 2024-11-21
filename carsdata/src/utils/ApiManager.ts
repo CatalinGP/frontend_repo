@@ -1,5 +1,5 @@
 /* Types for the item flag (used to read a single attribute) */
-export type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
+export type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'battery_state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
     'range_battery' | 'charging_time' | 'device_consumption';
 
 export type DoorsItems = 'door' | 'passenger' | 'driver' | 'passenger_lock' | 'ajar';

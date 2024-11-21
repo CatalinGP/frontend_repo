@@ -72,7 +72,7 @@ export const writeInfoBattery = async (item: BatteryItems, newValue: string, set
     /* Set a dictionary for easier mapping over the values */
     const variableMapping: { [key: string]: any } = {
         battery_level: {is_manual_flow: manual_flow, battery_level: parseInt(newValue) },
-        state_of_charge: {is_manual_flow: manual_flow, battery_state_of_charge: parseInt(newValue) },
+        battery_state_of_charge: {is_manual_flow: manual_flow, battery_state_of_charge: parseInt(newValue) },
         percentage: {is_manual_flow: manual_flow, percentage: parseInt(newValue) },
         voltage: {is_manual_flow: manual_flow, voltage: parseInt(newValue) },
     };
@@ -132,10 +132,10 @@ const DivCenterBattery = (props: any) => {
                     <div className="w-[30%] m-7 text-white grid justify-items-end">
                         <label htmlFor="battery_modal_1"
                             className="inline-flex items-center justify-center p-2 bg-blue-500 rounded-full border-4 border-gray-700 transition duration-300 ease-in-out hover:bg-blue-700">
-                            {data?.battery_level}%
+                            {data?.battery_level}Wh
                         </label>
                         <ModalUDS id="battery_modal_1" cardTitle={'Battery level'} writeInfo={writeInfoBattery} param="battery_level" manual={false} setter={setData}/>
-                        <p>Battery level</p>
+                        <p>Energy level</p>
                     </div>
 
                     {/* Battery State of Charge */}
@@ -145,12 +145,12 @@ const DivCenterBattery = (props: any) => {
                                 {data?.battery_state_of_charge}
                             </div>
                             <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "1", setData)}>Charging</a></li>
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "2", setData)}>Discharging</a></li>
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "3", setData)}>Empty</a></li>
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "4", setData)}>Fully charged</a></li>
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "5", setData)}>Pending charge</a></li>
-                                <li><a onClick={() => writeInfoBattery("state_of_charge", "6", setData)}>Pending discharge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "1", setData)}>Charging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "2", setData)}>Discharging</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "3", setData)}>Empty</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "4", setData)}>Fully charged</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "5", setData)}>Pending charge</a></li>
+                                <li><a onClick={() => writeInfoBattery("battery_state_of_charge", "6", setData)}>Pending discharge</a></li>
                             </ul>
                         </div>
                         <p className="text-white">State of charge</p>
