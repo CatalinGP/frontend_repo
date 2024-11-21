@@ -50,9 +50,10 @@ const SendRequests = () => {
     const [readDTCResult, setReadDTCResult] = useState<any>(null); // Pentru a stoca rezultatele funcției readDTC
     const [modalEcuId, setModalEcuId] = useState<string | null>(null);
 
-    const handleOpenModal = (ecuId: string) => {
-        setModalEcuId(ecuId); // Setăm ECU ID-ul pentru modal
-        document.getElementById('readDTCModal')?.click(); // Deschidem modalul
+    /* Handler for Read DTC modal */
+    const handleOpenReadDTC = (ecuId: string) => {
+        setModalEcuId(ecuId);
+        document.getElementById('readDTCModal')?.click();
     };
 
     const fetchLogs = async () => {
@@ -143,11 +144,6 @@ const SendRequests = () => {
             removeLoadingCicle();
         }
     }
-
-    const handleOpenModal = (dtcType: any) => {
-        setSelectedDtc(dtcType);
-        setIsDropdownOpen(false);
-    };
 
     /* Function that reads the data about MCU & ECUs IDs */
     const requestIds = async (initialRequest: boolean) => {
@@ -888,10 +884,10 @@ const SendRequests = () => {
                         </label>
                         <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                             <li>
-                                <a onClick={() => handleOpenModal("0x11")}>Battery</a>
+                                <a onClick={() => handleOpenReadDTC("0x11")}>Battery</a>
                             </li>
                             <li>
-                                <a onClick={() => handleOpenModal("0x12")}>Engine</a>
+                                <a onClick={() => handleOpenReadDTC("0x12")}>Engine</a>
                             </li>
                         </ul>
                     </div>
