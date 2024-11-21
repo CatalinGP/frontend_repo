@@ -109,7 +109,7 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const clearDTC = async (ecu_id: string, dtc_group: string) => {
+    const clearDTC = async (ecu_id: string, dtc_group: string, setData: any) => {
         console.log("Clearing DTC...");
         const data_sent = { ecu_id: ecu_id, dtc_group: dtc_group }
         displayLoadingCircle();
@@ -121,6 +121,7 @@ const SendRequests = () => {
                 console.error("Connection interrupted");
                 displayErrorPopup("Connection failed");
             }
+            setData(response);
             console.log(response);
         } catch (error) {
             console.error("Error during Clear DTC: ", error);
