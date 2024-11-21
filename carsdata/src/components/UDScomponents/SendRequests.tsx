@@ -497,17 +497,17 @@ const SendRequests = () => {
                     </div>
                     <div className="mt-2 ml-5">
                         <p>Tester present: {testerPres}</p>
-                        <input type="checkbox" className="toggle toggle-info" checked={testerPres === "disabled" ? false : true} onClick={testerPresent} />
+                        <input type="checkbox" className="toggle toggle-info" checked={testerPres === "disabled" ? false : true} onChange={testerPresent} />
                         {/* <>checked?????????????</> */}
                     </div>
                     <div className="mt-2 ml-5">
                         <p>Session: {session}</p>
-                        <input type="checkbox" className="toggle toggle-info" checked={session === "default" ? false : true} onClick={changeSession} />
+                        <input type="checkbox" className="toggle toggle-info" checked={session === "default" ? false : true} onChange={changeSession} />
                         {/* <>checked?????????????</> */}
                     </div>
                     <div className="mt-2 ml-5">
                         <p>Read {accessTiming} access timing</p>
-                        <input type="checkbox" className="toggle toggle-info" checked={accessTiming === "current" ? false : true} onClick={readAccessTiming} />
+                        <input type="checkbox" className="toggle toggle-info" checked={accessTiming === "current" ? false : true} onChange={readAccessTiming} />
                         {/* <>checked?????????????</> */}
                     </div>
                     <div className="mt-2 ml-5 border-2 border-black">
@@ -528,9 +528,9 @@ const SendRequests = () => {
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
                                     <li><a onClick={() => { setSelectedECUid("10"); setSelectedECU("MCU"); setIsDropdownOpen(false) }}>MCU</a></li>
                                     <li><a onClick={() => { setSelectedECUid("11"); setSelectedECU("Battery"); setIsDropdownOpen(false) }}>Battery</a></li>
-                                    {/* <li><a onClick={() => { setSelectedECUid("12"); setSelectedECU("Engine"); setIsDropdownOpen(false) }}>Engine</a></li>
+                                    <li><a onClick={() => { setSelectedECUid("12"); setSelectedECU("Engine"); setIsDropdownOpen(false) }}>Engine</a></li>
                                     <li><a onClick={() => { setSelectedECUid("13"); setSelectedECU("Doors"); setIsDropdownOpen(false) }}>Doors</a></li>
-                                    <li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li> */}
+                                    <li><a onClick={() => { setSelectedECUid("14"); setSelectedECU("HVAC"); setIsDropdownOpen(false) }}>HVAC</a></li>
                                 </ul>
                             )}
                         </div>
