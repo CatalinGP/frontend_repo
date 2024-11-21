@@ -13,8 +13,8 @@ import { BatteryItems } from '@/src/utils/ApiManager';
 import { apiManager, Endpoints } from '@/src/utils/ApiManager';
 import { json } from 'stream/consumers';
 import ModalHvacModes from './ModalHvacModes';
+import ModalReadDTC from './ModalReadDTC';
 import ModalClearDTC from './ModalClearDTC';
-
 
 let intervalID: number | NodeJS.Timeout | null = null;
 
@@ -46,6 +46,14 @@ const SendRequests = () => {
     const [ecuId, setecuId] = useState("");
     const [selectedDtc, setSelectedDtc] = useState("Select ECU Id");
     const [disableClearDTC, setDisableClearDTC] = useState<boolean>(false);
+
+    const [readDTCResult, setReadDTCResult] = useState<any>(null); // Pentru a stoca rezultatele funcției readDTC
+    const [modalEcuId, setModalEcuId] = useState<string | null>(null);
+
+    const handleOpenModal = (ecuId: string) => {
+        setModalEcuId(ecuId); // Setăm ECU ID-ul pentru modal
+        document.getElementById('readDTCModal')?.click(); // Deschidem modalul
+    };
 
     const fetchLogs = async () => {
         displayLoadingCircle();
@@ -90,20 +98,25 @@ const SendRequests = () => {
     };
 
     // Read Diagnostic Trouble Codes (DTC)
-    const readDTC = async () => {
-        displayLoadingCircle();
-        console.log("Reading DTC...");
+    const readDTC = async (ecu_id: any, read_dtc_subfunc: any, dtc_mask_bits: any) => {
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_dtc_info`, {
-                method: 'GET',
-            }).then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                });
+            displayLoadingCircle();
+            const data = await apiManager.apiCall(Endpoints.READ_DTC, {
+                ecu_id: ecu_id,
+                read_dtc_subfunc: read_dtc_subfunc,
+                dtc_mask_bits: dtc_mask_bits
+            });
+
+            console.log("API Response:", data);
+            setData23(data);
+            /* If communication was intrerrupted, log error */
+            if (data?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+
         } catch (error) {
-            removeLoadingCicle();
+            console.log("Read error", error)
             displayErrorPopup("can't read DTC ");
         }
         removeLoadingCicle();
@@ -154,6 +167,7 @@ const SendRequests = () => {
             displayErrorPopup("Connection failed");
         } finally { removeLoadingCicle(); }
     };
+
 
     const updateToVersion = async () => {
         displayLoadingCircle();
@@ -510,6 +524,23 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
+    const renderDictionary = (data: any) => {
+        if (typeof data !== "object" || data === null) {
+            return <span>{String(data)}</span>;
+        }
+
+        return (
+            <ul className="list-disc ml-4">
+                {Object.entries(data).map(([key, value]) => (
+                    <li key={key}>
+                        <strong>{key}:</strong> {renderDictionary(value)}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
+
     useEffect(() => {
         requestIds(true);
     }, []);
@@ -618,7 +649,6 @@ const SendRequests = () => {
                             <li><a onClick={() => { readInfoBattery(setData23, { manual_flow: true, item: 'voltage' }) }}>Voltage</a></li>
                         </ul>
                     </div>
-
 
                     <div className="dropdown">
                         <button tabIndex={3} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoBatteryBtns}>
@@ -775,7 +805,6 @@ const SendRequests = () => {
                         </div>
                     </div>
 
-
                     <div className="dropdown">
                         <button tabIndex={8} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white relative" disabled={disableInfoHvacBtns}>
                             Read HVAC Info
@@ -843,8 +872,40 @@ const SendRequests = () => {
 
                 <div className="mt-2">
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
-                    <button className="btn btn-success w-fit ml-1 mt-2 text-white" onClick={readDTC} disabled={disableFrameAndDtcBtns}>Read DTC</button>
-
+                    
+                    {/* Dropdown for ReadDTC ECUs */}
+                    <div className="dropdown">
+                        <label tabIndex={0} className="btn btn-success w-fit ml-1 mt-2 text-white">
+                            Read DTC
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </label>
+                        <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                            <li>
+                                <a onClick={() => handleOpenModal("0x11")}>Battery</a>
+                            </li>
+                            <li>
+                                <a onClick={() => handleOpenModal("0x12")}>Engine</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    {/* Read DTC modal */}
+                    {modalEcuId && (
+                        <ModalReadDTC
+                            id="readDTCModal"
+                            ecu_id={modalEcuId}
+                            readDTC={readDTC}
+                            setter={setReadDTCResult}
+                        />
+                    )}
+                  
                     <div className="dropdown">
                         <button tabIndex={10} className="btn btn-success w-fit ml-1 mt-2 text-white" disabled={disableClearDTC}>
                             Clear DTC
@@ -868,25 +929,19 @@ const SendRequests = () => {
                             </ul>
                             <ModalClearDTC id="clearDTC_modal" ecu_id={ecuId} clearDTC={clearDTC} setter={setData23} />
                         </div>
-                    </div>
-
+                    </div>    
+                          
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
-
                     <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Read Timing</button>
-
                     <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
 
                     {data23 && (
                         <div>
                             <h1 className="text-2xl mt-2">Response</h1>
-                            <ul className="m-2 p-2 list-disc">
-                                {Object.entries(data23).map(([key, value]) => (
-                                    <li key={key}>
-                                        <strong>{key}:</strong> {JSON.stringify(value)}
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="m-2 p-2 list-disc">
+                                {renderDictionary(data23)}
+                            </div>
                         </div>
                     )}
 
