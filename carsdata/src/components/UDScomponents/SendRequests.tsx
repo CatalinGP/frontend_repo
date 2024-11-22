@@ -50,6 +50,10 @@ const SendRequests = () => {
     const [subFunct, setSubFunct] = useState<string | null>(null);
     const [ecuId2, setecuId2] = useState<string | null>(null);
 
+    const [disableWriteTiming, setDisableWriteTiming] = useState<boolean>(false);
+    const [subFunct2, setSubFunct2] = useState<string | null>(null);
+    const [ecuId3, setecuId3] = useState<string | null>(null);
+
     const [readDTCResult, setReadDTCResult] = useState<any>(null); // Pentru a stoca rezultatele funcției readDTC
     const [modalEcuId, setModalEcuId] = useState<string | null>(null);
 
@@ -68,6 +72,24 @@ const SendRequests = () => {
 
     const getSelected = (id: string) => {
         if (ecuId2 === id) {
+            return {
+                backgroundColor: '#4b5563',
+                color: 'white', 
+                fontWeight: 'bold', 
+            };
+        }
+        return {};
+    };
+
+    /* Handler for Write Access Timing when subfunction is selected */
+    const handleWriteAccessTiming = (sub_funct: string) => {
+        if (ecuId3) {
+            writeAccessTiming(ecuId3, sub_funct, setData23);
+        }
+    };
+    
+    const getSelected2 = (id: string) => {
+        if (ecuId3 === id) {
             return {
                 backgroundColor: '#4b5563',
                 color: 'white', 
@@ -386,51 +408,36 @@ const SendRequests = () => {
         }
     }
 
-    const writeTiming = async () => {
+    const writeAccessTiming = async (ecu_id: string, sub_funct: string, setData: any) => {
+        let data_sent: { [key: string]: any };
+        
+        if (sub_funct === '2') {
+            console.log('Write Access Timing - Reset to Default');
+            data_sent = {ecu_id: ecu_id, sub_funct: sub_funct};
 
-        const timingData = {
-            p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
-            p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10)
-        };
-
-        console.log("Writing timing data...", timingData);
-        displayLoadingCircle();
-
-        try {
-            const response = await fetch(`http://127.0.0.1:5000/api/write_timing`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(timingData),
-            });
-
-            const data = await response.json();
-            console.log("Response data:", data);
-
-            if (data.status === "success") {
-                setData23(data)
-                console.log(data)
-
-                const writtenValues = data.written_values;
-                const message = `Timing parameters written successfully.\n` +
-                    `New P2 Max Time: ${writtenValues["New P2 Max Time"]}\n` +
-                    `New P2 Star Max: ${writtenValues["New P2 Star Max"]}`;
-
-                displayErrorPopup(message);
-            } else {
-                displayErrorPopup(`Error: ${data.message}`);
-            }
-
-            fetchLogs();
-
-        } catch (error) {
-            console.error("Error:", error);
-            displayErrorPopup("Failed to write timing values");
-            removeLoadingCicle();
+        } else {
+            data_sent = {p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
+                        p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10),
+                        ecu_id: ecu_id,
+                        sub_funct: sub_funct};
         }
 
-        removeLoadingCicle();
+        displayLoadingCircle();
+        try {
+            const response = await apiManager.apiCall(Endpoints.WRITE_TIMING, { json: data_sent });
+
+            if (response?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+            setData(response);
+            console.log(response);
+        } catch (error) {
+            console.error("Error during Read Access Timing: ", error);
+            displayErrorPopup("Error during Read Access Timing");
+        } finally {
+            removeLoadingCicle();
+        }
     };
 
     const getIdentifiers = async () => {
@@ -980,7 +987,6 @@ const SendRequests = () => {
                                     </label>
                                 </li>
 
-                                {/* Sublist for Default/Current Timing (only shows if ecuId is selected) */}
                                 {ecuId2 && (
                                     <>
                                         <li className="menu-title">
@@ -1008,7 +1014,73 @@ const SendRequests = () => {
                         </div>
                     </div>
 
-                    <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
+                    <div className="dropdown">
+                        <button tabIndex={10} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" disabled={disableWriteTiming}>
+                            Write Timing
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={7} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li style={getSelected2("10")}>
+                                    <label onClick={() => { setecuId3("10") }}>
+                                        MCU
+                                    </label>
+                                </li>
+                                <li style={getSelected2("11")}>
+                                    <label onClick={() => { setecuId3("11") }}>
+                                        Battery
+                                    </label>
+                                </li>
+                                <li style={getSelected2("12")}>
+                                    <label onClick={() => { setecuId3("12") }}>
+                                        Engine
+                                    </label>
+                                </li>
+                                <li style={getSelected2("13")}>
+                                    <label onClick={() => { setecuId3("13") }}>
+                                        Doors
+                                    </label>
+                                </li>
+                                <li style={getSelected2("14")}>
+                                    <label onClick={() => { setecuId3("14") }}>
+                                        HVAC
+                                    </label>
+                                </li>
+
+                                {ecuId3 && (
+                                    <>
+                                        <li className="menu-title">
+                                            Select Timing
+                                        </li>
+                                        <li>
+                                            <label
+                                                htmlFor="default_timing"
+                                                onClick={() => { setSubFunct2('2'); handleWriteAccessTiming('2') }}
+                                            >
+                                                Reset to Default
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label
+                                                htmlFor="current_timing"
+                                                onClick={() => { setSubFunct2('4'); handleWriteAccessTiming('4') }}
+                                            >
+                                                Write Current
+                                            </label>
+                                        </li>
+                                    </>
+                                )}
+                            </ul>
+                        </div>
+                    </div>                    
+                    
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
 
                     {data23 && (
