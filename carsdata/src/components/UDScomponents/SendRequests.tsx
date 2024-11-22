@@ -46,6 +46,9 @@ const SendRequests = () => {
     const [ecuId, setecuId] = useState("");
     const [selectedDtc, setSelectedDtc] = useState("Select ECU Id");
     const [disableClearDTC, setDisableClearDTC] = useState<boolean>(false);
+    const [disableReadTiming, setDisableReadTiming] = useState<boolean>(false);
+    const [subFunct, setSubFunct] = useState<string | null>(null);
+    const [ecuId2, setecuId2] = useState<string | null>(null);
 
     const [readDTCResult, setReadDTCResult] = useState<any>(null); // Pentru a stoca rezultatele funcției readDTC
     const [modalEcuId, setModalEcuId] = useState<string | null>(null);
@@ -54,6 +57,24 @@ const SendRequests = () => {
     const handleOpenReadDTC = (ecuId: string) => {
         setModalEcuId(ecuId);
         document.getElementById('readDTCModal')?.click();
+    };
+
+    /* Handler for Read Access Timing when subfunction is selected */
+    const handleReadAccessTiming = (sub_funct: string) => {
+        if (ecuId2) {
+            readAccessTiming(ecuId2, sub_funct, setData23);
+        }
+    };
+
+    const getSelected = (id: string) => {
+        if (ecuId2 === id) {
+            return {
+                backgroundColor: '#4b5563',
+                color: 'white', 
+                fontWeight: 'bold', 
+            };
+        }
+        return {};
     };
 
     const fetchLogs = async () => {
@@ -337,43 +358,32 @@ const SendRequests = () => {
         removeLoadingCicle();
     }
 
-    const readAccessTiming = async () => {
-        console.log("Reading access timing...");
-        let readAccessTimingType: any;
+    const readAccessTiming = async (ecu_id: string, sub_funct: string, setData: any) => {
 
-        readAccessTimingType = {
-            sub_funct: accessTiming === "current" ? 3 : 1
-        };
+        if (sub_funct === "1") {
+            console.log("Read Access Timing - Default");
+        } else {
+            console.log("Read Access Timing - Current");
+        }
 
-        console.log(readAccessTimingType);
+        const data_sent = { ecu_id: ecu_id, sub_funct: sub_funct }
         displayLoadingCircle();
+
         try {
-            await fetch(`http://127.0.0.1:5000/api/read_access_timing`, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(readAccessTimingType),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
+            const response = await apiManager.apiCall(Endpoints.READ_ACCESS_TIMING, { json: data_sent });
 
-                    if (data.status === "success") {
-                        setAccessTiming(accessTiming === "current" ? "default" : "current");
-                        displayErrorPopup(accessTiming === "current" ? "Current access timing" : "Default access timing");
-                    }
-
-                })
+            if (response?.ERROR === 'interrupted') {
+                console.error("Connection interrupted");
+                displayErrorPopup("Connection failed");
+            }
+            setData(response);
+            console.log(response);
         } catch (error) {
-            console.log(error);
-            displayErrorPopup("Failed to read access timing");
+            console.error("Error during Read Access Timing: ", error);
+            displayErrorPopup("Error during Read Access Timing");
+        } finally {
             removeLoadingCicle();
         }
-        removeLoadingCicle();
     }
 
     const writeTiming = async () => {
@@ -564,11 +574,10 @@ const SendRequests = () => {
                         <input type="checkbox" className="toggle toggle-info" checked={session === "default" ? false : true} onChange={changeSession} />
                         {/* <>checked?????????????</> */}
                     </div>
-                    <div className="mt-2 ml-5">
+      {/*               <div className="mt-2 ml-5">
                         <p>Read {accessTiming} access timing</p>
                         <input type="checkbox" className="toggle toggle-info" checked={accessTiming === "current" ? false : true} onChange={readAccessTiming} />
-                        {/* <>checked?????????????</> */}
-                    </div>
+                    </div> */}
                     <div className="mt-2 ml-5 border-2 border-black">
                         <p>ECU reset</p>
                         <div className="dropdown">
@@ -928,7 +937,77 @@ const SendRequests = () => {
                     </div>    
                           
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
-                    <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Read Timing</button>
+
+                    {/* <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={readAccessTiming}>Read Timing</button> */}
+                    
+                    <div className="dropdown">
+                        <button tabIndex={10} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" disabled={disableReadTiming}>
+                            Read Timing
+                            <Image
+                                src="/dropdownarrow.png"
+                                alt="Dropdown arrow icon"
+                                className="dark:invert m-1 hover:object-scale-down"
+                                width={10}
+                                height={10}
+                                priority
+                            />
+                        </button>
+                        <div>
+                            <ul tabIndex={7} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-fit p-2 shadow">
+                                <li style={getSelected("10")}>
+                                    <label onClick={() => { setecuId2("10") }}>
+                                        MCU
+                                    </label>
+                                </li>
+                                <li style={getSelected("11")}>
+                                    <label onClick={() => { setecuId2("11") }}>
+                                        Battery
+                                    </label>
+                                </li>
+                                <li style={getSelected("12")}>
+                                    <label onClick={() => { setecuId2("12") }}>
+                                        Engine
+                                    </label>
+                                </li>
+                                <li style={getSelected("13")}>
+                                    <label onClick={() => { setecuId2("13") }}>
+                                        Doors
+                                    </label>
+                                </li>
+                                <li style={getSelected("14")}>
+                                    <label onClick={() => { setecuId2("14") }}>
+                                        HVAC
+                                    </label>
+                                </li>
+
+                                {/* Sublist for Default/Current Timing (only shows if ecuId is selected) */}
+                                {ecuId2 && (
+                                    <>
+                                        <li className="menu-title">
+                                            Select Timing
+                                        </li>
+                                        <li>
+                                            <label
+                                                htmlFor="default_timing"
+                                                onClick={() => { setSubFunct('1'); handleReadAccessTiming('1') }}
+                                            >
+                                                Default
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label
+                                                htmlFor="current_timing"
+                                                onClick={() => { setSubFunct('3'); handleReadAccessTiming('3') }}
+                                            >
+                                                Current
+                                            </label>
+                                        </li>
+                                    </>
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+
                     <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={writeTiming}>Write Timing</button>
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
 
