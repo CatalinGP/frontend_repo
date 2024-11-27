@@ -1,4 +1,3 @@
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import { apiManager, Endpoints } from '@/src/utils/ApiManager';
 
 /* Set a dictionary for easier mapping over the names */
@@ -30,25 +29,18 @@ export class EcuActions {
     /* ECU Reset method */
     ecuReset = async (resetType: string, setData: any) => {
         const name = this.getName();
-        console.log(`Reseting ${name}...`);
+        console.log(`Resetting ${name}...`);
 
         const data_sent = { ecu_id: this.ecu_id, type_reset: resetType };
+        console.log("Data sent: ",data_sent);
 
-        displayLoadingCircle();
-        try {
-            const response = await apiManager.apiCall(Endpoints.RESET_ECU, { json: data_sent });
+        const response = await apiManager.apiCall(Endpoints.RESET_ECU, { json: data_sent });
 
-            if (response?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
+        if (response) {
+            console.log("Response: ", response);
             setData(response);
-            console.log("Response:\n", response);
-        } catch (error) {
-            console.error("Error during ECU Reset: ", error);
-            displayErrorPopup("Error during ECU Reset");
-        } finally {
-            removeLoadingCicle();
+        } else {
+            console.error("API call failed or was interrupted.");
         }
     }
 
@@ -62,22 +54,15 @@ export class EcuActions {
         }
 
         const data_sent = { ecu_id: this.ecu_id, sub_funct: sub_funct };
+        console.log("Data sent: ",data_sent);
 
-        displayLoadingCircle();
-        try {
-            const response = await apiManager.apiCall(Endpoints.READ_ACCESS_TIMING, { json: data_sent });
+        const response = await apiManager.apiCall(Endpoints.READ_ACCESS_TIMING, { json: data_sent });
 
-            if (response?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
+        if (response) {
+            console.log("Response: ", response);
             setData(response);
-            console.log("Response:\n", response);
-        } catch (error) {
-            console.error("Error during Read Access Timing: ", error);
-            displayErrorPopup("Error during Read Access Timing");
-        } finally {
-            removeLoadingCicle();
+        } else {
+            console.error("API call failed or was interrupted.");
         }
     }
 
@@ -97,22 +82,15 @@ export class EcuActions {
                         ecu_id: this.ecu_id,
                         sub_funct: sub_funct};
         }
+        console.log("Data sent: ",data_sent);
 
-        displayLoadingCircle();
-        try {
-            const response = await apiManager.apiCall(Endpoints.WRITE_TIMING, { json: data_sent });
+        const response = await apiManager.apiCall(Endpoints.WRITE_TIMING, { json: data_sent });
 
-            if (response?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
+        if (response) {
+            console.log("Response: ", response);
             setData(response);
-            console.log("Response:\n", response);
-        } catch (error) {
-            console.error("Error during Read Access Timing: ", error);
-            displayErrorPopup("Error during Write Access Timing");
-        } finally {
-            removeLoadingCicle();
+        } else {
+            console.error("API call failed or was interrupted.");
         }
     }
 
@@ -120,24 +98,17 @@ export class EcuActions {
     readDTC = async (read_dtc_subfunc: any, dtc_mask_bits: any, setData: any) => {
         const name = this.getName();
         console.log(`Reading Diagnostic Trouble Codes for ${name}...`);
+        
         const data_sent = {ecu_id: this.ecu_id, read_dtc_subfunc: read_dtc_subfunc, dtc_mask_bits: dtc_mask_bits};
+        console.log("Data sent: ",data_sent);
 
-        displayLoadingCircle();
-        try {
-            const response = await apiManager.apiCall(Endpoints.READ_DTC, {json: data_sent});
-
-            if (response?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
-
+        const response = await apiManager.apiCall(Endpoints.READ_DTC, {json: data_sent});
+        
+        if (response) {
+            console.log("Response: ", response);
             setData(response);
-            console.log("Response:\n", response);
-        } catch (error) {
-            console.log("Read error", error)
-            displayErrorPopup("Error during Read DTC");
-        } finally {
-            removeLoadingCicle();
+        } else {
+            console.error("API call failed or was interrupted.");
         }
     }
 
@@ -145,24 +116,17 @@ export class EcuActions {
     clearDTC = async (dtc_group: string, setData: any) => {
         const name = this.getName();
         console.log(`Clearing Diagnostic Trouble Codes for ${name}...`);
+        
         const data_sent = { ecu_id: this.ecu_id, dtc_group: dtc_group };
+        console.log("Data sent: ",data_sent);
 
-        displayLoadingCircle();
-        try {
-            const response = await apiManager.apiCall(Endpoints.CLEAR_DTC, { json: data_sent });
+        const response = await apiManager.apiCall(Endpoints.CLEAR_DTC, { json: data_sent });
 
-            if (response?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
-
+        if (response) {
+            console.log("Response: ", response);
             setData(response);
-            console.log("Response:\n", response);
-        } catch (error) {
-            console.error("Error during Clear DTC: ", error);
-            displayErrorPopup("Error during Clear DTC");
-        } finally {
-            removeLoadingCicle();
+        } else {
+            console.error("API call failed or was interrupted.");
         }
     }
 }

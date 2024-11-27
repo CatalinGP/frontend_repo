@@ -4,7 +4,6 @@ import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import ModalHvacModes from './ModalHvacModes';
 import './style.css';
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 import {HvacItems, apiManager, Endpoints} from '@/src/utils/ApiManager';
 
@@ -34,30 +33,21 @@ export interface HVACData {
 export const readInfoHVAC = async (setData:any,
                                    options: {manual_flow?: boolean; item?: HvacItems | null} = {}) => {
 
-        /* Set default values using destructuring for the options that were not provided */
-        const { manual_flow = false, item = null } = options;
+    /* Set default values using destructuring for the options that were not provided */
+    const { manual_flow = false, item = null } = options;
 
-        displayLoadingCircle();
-        console.log("Reading hvac info...");
+    console.log("Reading hvac info...");
     
-        try {
-            /* Use API Manager to do the API call */
-            const data = await apiManager.apiCall(Endpoints.READ_HVAC, {manual_flow: options.manual_flow,
-                                                                           item: options.item});
-    
-            console.log("Read hvac data: ", data);
-            setData(data);
-    
-            /* If communication was intrerrupted, log error */
-            if(data?.ERROR === 'interrupted') {
-                console.error("Connection interrupted");
-                displayErrorPopup("Connection failed");
-            }
-        } catch (error) {
-            /* Handler for errors returned by API Manager */
-            console.error("Error during read operation: ", error);
-            displayErrorPopup("Connection failed");
-        } finally { removeLoadingCicle(); }
+    /* Use API Manager to do the API call */
+    const response = await apiManager.apiCall(Endpoints.READ_HVAC, {manual_flow: options.manual_flow,
+                                                                    item: options.item});
+
+    if (response) {
+        console.log("Read hvac data: ", response);
+        setData(response);
+    } else {
+        console.error("API call failed or was interrupted.");
+    }
 };
 
 /* Function that writes data to HVAC. It takes four arguments:
@@ -88,35 +78,25 @@ export const writeInfoHvac = async (item: HvacItems, newValue: string, setData: 
 
     /* Error case: variable cannot be written */
     if (!data_sent) {
-        console.error(`Invalid variable for write: ${item}`);
+        console.error(`Variable ${item} cannot be written.`);
         return;
     }
+    console.log("Data sent: ",data_sent);
 
-    console.log(data_sent);
-    displayLoadingCircle();
-
-    try {
-        /* Use API Manager to do the API call */
-        const response = await apiManager.apiCall(Endpoints.WRITE_HVAC, {
+    /* Use API Manager to do the API call */
+    const response = await apiManager.apiCall(Endpoints.WRITE_HVAC, {
             json: data_sent,
             manual_flow: manual_flow,
-        });
+    });
 
-        /* If communication was intrerrupted, log error */
-        if (response?.ERROR === 'interrupted') {
-            console.error("Connection interrupted");
-            displayErrorPopup("Connection failed");
-        }
-
-        console.log(response);
-    } catch (error) {
-        console.error("Error during write operation: ", error);
-        displayErrorPopup("Connection failed");
-    } finally {
-        removeLoadingCicle();
-        readInfoHVAC(setData, {manual_flow: manual_flow});
+    if (response) {
+        console.log("Response: ", response);
+    } else {
+        console.error("API call failed or was interrupted.");
     }
-}
+
+    readInfoHVAC(setData, {manual_flow: manual_flow});
+};
 
 const DivCenterHVAC = (props: any) => {
     logger.init();
