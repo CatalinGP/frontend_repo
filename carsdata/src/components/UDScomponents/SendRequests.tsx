@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import ModalUDS from './ModalUDS';
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCircle } from '../sharedComponents/LoadingCircle';
 import { batteryData, readInfoBattery, writeInfoBattery } from './DivCenterBattery';
 import { engineData, readInfoEngine, writeInfoEngine } from './DivCenterEngine';
 import { doorsData, readInfoDoors, writeInfoDoors } from './DivCenterDoors';
@@ -112,9 +112,9 @@ const SendRequests = () => {
             .catch(error => {
                 console.error('Error fetching logs:', error);
                 displayErrorPopup("Connection failed");
-                removeLoadingCicle();
+                removeLoadingCircle();
             });
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     // Send a CAN frame to the server
@@ -138,7 +138,7 @@ const SendRequests = () => {
         } catch (error) {
             console.error("Error during read operation: ", error);
             displayErrorPopup("Connection failed");
-        } finally { removeLoadingCicle(); }
+        } finally { removeLoadingCircle(); }
     };
 
     // Read Diagnostic Trouble Codes (DTC)
@@ -163,7 +163,7 @@ const SendRequests = () => {
             console.log("Read error", error)
             displayErrorPopup("can't read DTC ");
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const clearDTC = async (ecu_id: string, dtc_group: string, setData: any) => {
@@ -184,7 +184,7 @@ const SendRequests = () => {
             console.error("Error during Clear DTC: ", error);
             displayErrorPopup("Error during Clear DTC");
         } finally {
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
     }
 
@@ -204,7 +204,7 @@ const SendRequests = () => {
         } catch (error) {
             console.error("Error during read operation: ", error);
             displayErrorPopup("Connection failed");
-        } finally { removeLoadingCicle(); }
+        } finally { removeLoadingCircle(); }
     };
 
 
@@ -230,9 +230,9 @@ const SendRequests = () => {
         } catch (error) {
             console.log(error);
             displayErrorPopup("Connection failed");
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const getNewSoftVersions = async (): Promise<{ message: string; versions: { name: string; version: string }[] }> => {
@@ -298,7 +298,7 @@ const SendRequests = () => {
                 versions: []
             };
         } finally {
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
     };
 
@@ -356,9 +356,9 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const authenticate = async () => {
@@ -375,9 +375,9 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const readAccessTiming = async (ecu_id: string, sub_funct: string, setData: any) => {
@@ -404,7 +404,7 @@ const SendRequests = () => {
             console.error("Error during Read Access Timing: ", error);
             displayErrorPopup("Error during Read Access Timing");
         } finally {
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
     }
 
@@ -436,7 +436,7 @@ const SendRequests = () => {
             console.error("Error during Read Access Timing: ", error);
             displayErrorPopup("Error during Read Access Timing");
         } finally {
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
     };
 
@@ -454,9 +454,9 @@ const SendRequests = () => {
                 });
         } catch (error) {
             console.log(error);
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const checkTesterPresent = async () => {
@@ -532,9 +532,9 @@ const SendRequests = () => {
         } catch (error) {
             console.log(error);
             displayErrorPopup("Connection failed");
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     const renderDictionary = (data: any) => {

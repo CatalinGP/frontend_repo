@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 import { Endpoints, apiManager, DoorsItems } from '@/src/utils/ApiManager';
 
@@ -14,46 +13,26 @@ export interface doorsData {
     passenger_lock: any,
 }
 
-const checkInput = (message: any) => {
-    let value;
-    do {
-        value = prompt(message);
-        if (value !== '0' && value !== '1') {
-            alert('Accepted value: 0/1');
-        }
-    } while (value !== '0' && value !== '1');
-    return value;
-};
-
 export const readInfoDoors = async (setData: any,
     options: { manual_flow?: boolean; item?: DoorsItems | null } = {}) => {
 
     /* Set default values using destructuring for the options that were not provided */
     const { manual_flow = false, item = null } = options;
 
-    displayLoadingCircle();
     console.log("Reading doors info...");
 
-    try {
-        /* Use API Manager to do the API call */
-        const data = await apiManager.apiCall(Endpoints.READ_DOORS, {
+    /* Use API Manager to do the API call */
+    const response = await apiManager.apiCall(Endpoints.READ_DOORS, {
             manual_flow: options.manual_flow,
             item: options.item
-        });
+    });
 
-        console.log("Read doors data: ", data);
-        setData(data);
-
-        /* If communication was intrerrupted, log error */
-        if (data?.ERROR === 'interrupted') {
-            console.error("Connection interrupted");
-            displayErrorPopup("Connection failed");
-        }
-    } catch (error) {
-        /* Handler for errors returned by API Manager */
-        console.error("Error during read operation: ", error);
-        displayErrorPopup("Connection failed");
-    } finally { removeLoadingCicle(); }
+    if (response) {
+        console.log("Read doors data: ", response);
+        setData(response);
+    } else {
+        console.error("API call failed or was interrupted.");
+    }
 };
 
 export const writeInfoDoors = async (item: DoorsItems, newValue: string, setData: any,
@@ -75,35 +54,25 @@ export const writeInfoDoors = async (item: DoorsItems, newValue: string, setData
     const data_sent = variableMapping[item];
 
     if (!data_sent) {
-        console.error(`Invalid variable for write: ${item}`);
+        console.error(`Variable ${item} cannot be written.`);
         return;
     }
+    console.log("Data sent: ",data_sent);
 
-    console.log(data_sent);
-    displayLoadingCircle();
+    /* Use API Manager to do the API call */
+    const response = await apiManager.apiCall(Endpoints.WRITE_DOORS, {
+        json: data_sent,
+        manual_flow: manual_flow,
+    });
 
-    try {
-        /* Use API Manager to do the API call */
-        const response = await apiManager.apiCall(Endpoints.WRITE_DOORS, {
-            json: data_sent,
-            manual_flow: manual_flow,
-        });
-
-        /* If communication was intrerrupted, log error */
-        if (response?.ERROR === 'interrupted') {
-            console.error("Connection interrupted");
-            displayErrorPopup("Connection failed");
-        }
-
-        console.log(response);
-    } catch (error) {
-        console.error("Error during write operation: ", error);
-        displayErrorPopup("Connection failed");
-    } finally {
-        removeLoadingCicle();
-        readInfoDoors(setData, { manual_flow: manual_flow });
+    if (response) {
+        console.log("Response: ", response);
+    } else {
+        console.error("API call failed or was interrupted.");
     }
-}
+    
+    readInfoDoors(setData, { manual_flow: manual_flow });
+};
 
 
 const DivCenterDoors = (props: any) => {
@@ -200,4 +169,3 @@ const DivCenterDoors = (props: any) => {
 }
 
 export default DivCenterDoors
-

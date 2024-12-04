@@ -75,7 +75,7 @@ export function displayErrorPopup (text: string = 'API connection failed') {
     }, 1000);
 };
 
-export function removeLoadingCicle()
+export function removeLoadingCircle()
     {
     if (popupElement && popupStyleElement && overlayElement) {
         document.body.removeChild(popupElement);

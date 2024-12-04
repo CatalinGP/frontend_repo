@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'antd';
-import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
+import {displayLoadingCircle, displayErrorPopup, removeLoadingCircle} from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
 const UpgradeButton = (props: any) => {
@@ -47,7 +47,7 @@ const UpgradeButton = (props: any) => {
             }).then(response => response.json())
                 .then(data => {
                     console.log(data);
-                    removeLoadingCicle();
+                    removeLoadingCircle();
                     if (data?.errors === "No errors.") {
                         displayErrorPopup("Upgrade successful");
                     } else {
@@ -56,7 +56,7 @@ const UpgradeButton = (props: any) => {
                 });
         } catch (error: any) {
             console.log(error);
-            removeLoadingCicle();
+            removeLoadingCircle();
         }
     };
 
