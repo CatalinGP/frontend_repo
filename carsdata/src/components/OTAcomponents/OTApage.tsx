@@ -4,7 +4,7 @@ import LeftSideBar from "@/src/components/OTAcomponents/LeftSideBar";
 import NavbarOta from "@/src/components/OTAcomponents/NavbarOta";
 import TableVersionControl from "@/src/components/OTAcomponents/TableVersionControl";
 import TableHistory from "@/src/components/OTAcomponents/TableHistory";
-import {displayLoadingCircle, displayErrorPopup, removeLoadingCicle} from '../sharedComponents/LoadingCircle';
+import {displayLoadingCircle, displayErrorPopup, removeLoadingCircle} from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
 let MCU_versions : string = '';
@@ -30,7 +30,7 @@ const getAvailable = async () => {
         .catch(error => {
             console.log(error);
             displayErrorPopup();
-            removeLoadingCicle();
+            removeLoadingCircle();
         });
 };
 getAvailable();

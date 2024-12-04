@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import ModalUDS from './ModalUDS';
 import './style.css';
-import { displayLoadingCircle, displayErrorPopup, removeLoadingCicle } from '../sharedComponents/LoadingCircle';
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCircle } from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
 const DivCenterMCU = (props: any) => {
@@ -19,7 +19,7 @@ const DivCenterMCU = (props: any) => {
         );
         const jsonData = await res.json();
         setJsonResp(jsonData);
-        removeLoadingCicle();
+        removeLoadingCircle();
     }
 
     return (

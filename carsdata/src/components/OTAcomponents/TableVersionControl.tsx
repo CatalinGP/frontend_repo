@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import UpgradeButton from './UpgradeButton';
 import DowngradeButton from './DowngradeButton';
-import {removeLoadingCicle} from '../sharedComponents/LoadingCircle';
+import {removeLoadingCircle} from '../sharedComponents/LoadingCircle';
 import logger from '@/src/utils/Logger';
 
 const TableVersionControl = (props: any) => {
@@ -12,7 +12,7 @@ const TableVersionControl = (props: any) => {
 
     const getNewSoftVersions = () => {
         setNewSoftVersions(props.versions.split('; '));
-        removeLoadingCicle();
+        removeLoadingCircle();
     };
 
     useEffect(() => {

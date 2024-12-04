@@ -1,3 +1,5 @@
+import { displayLoadingCircle, displayErrorPopup, removeLoadingCircle } from '@/src/components/sharedComponents/LoadingCircle';
+
 /* Types for the item flag (used to read a single attribute) */
 export type BatteryItems = 'battery_level' | 'voltage' | 'percentage' | 'battery_state_of_charge' | 'life_cycle' | 'fully_charged' | 'serial_number' |
     'range_battery' | 'charging_time' | 'device_consumption';
@@ -224,75 +226,93 @@ class ApiManager {
                 read_dtc_subfunc = null,
                 dtc_mask_bits = []} = options;
 
-    /*** Treat different error cases to ensure the parameters were provided correctly ***/
+        displayLoadingCircle();
+        try {        
 
-        /* Error case: invalid endpoint */
-        if (!endpoint) {
-            throw new Error('apiCall: The provided endpoint is invalid!');
-        }
+        /*** Treat different error cases to ensure the parameters were provided correctly ***/
 
-        /* Error case: POST endpoint with empty payload */
-        if (endpoint.method === 'POST' && json === null) {
-            throw new Error('apiCall: Payload JSON is null!');
-        }
-            
-        /* Error case: Missing arguments for READ_DTC */
-        if (endpoint.url === Endpoints.READ_DTC.url) {
-            if (!ecu_id || !read_dtc_subfunc || dtc_mask_bits.length === 0) {
-                throw new Error('apiCall: Missing parameter for Read DTC.\nEnsure you have provided ecu_id, read_dtc_subfunc and dtc_mask_bits.');
+            /* Error case: invalid endpoint */
+            if (!endpoint) {
+                throw new Error('apiCall: The provided endpoint is invalid!');
             }
-        }
 
-    /*** Construct URL for based on the flags supported ***/
-
-        let url = endpoint.url;
-
-        /* If the called service is READ_DTC, construct URL with specific flags */
-        if (endpoint.url === Endpoints.READ_DTC.url) {
-            
-            /* Add ecu_id */
-            url += '?ecu_id=' + ecu_id;
-
-            /* Add subfunction */
-            url += '&subfunc=' + read_dtc_subfunc;
-
-            /* Add mask_bits */
-            for (const mask_bit of dtc_mask_bits) {
-                url+= '&dtc_mask_bits=' + mask_bit;
+            /* Error case: POST endpoint with empty payload */
+            if (endpoint.method === 'POST' && json === null) {
+                throw new Error('apiCall: Payload JSON is null!');
             }
-        } else {
             
-            /* Adds manual_flow flag in the url for the endpoints that need it (where need_manual_flag is true).
-               Also add item flag if needed */
-            if (endpoint.need_manual_flow) {
-                url += (url.includes('?') ? '&' : '?') + 'is_manual_flow=' + manual_flow;
-
-                if (endpoint.supports_item_flag && item) {
-                    url += (url.includes('?') ? '&' : '?') + 'item=' + item;
+            /* Error case: Missing arguments for READ_DTC */
+            if (endpoint.url === Endpoints.READ_DTC.url) {
+                if (!ecu_id || !read_dtc_subfunc || dtc_mask_bits.length === 0) {
+                    throw new Error('apiCall: Missing parameter for Read DTC.\nEnsure you have provided ecu_id, read_dtc_subfunc and dtc_mask_bits.');
                 }
             }
+
+        /*** Construct URL for based on the flags supported ***/
+
+            let url = endpoint.url;
+
+            /* If the called service is READ_DTC, construct URL with specific flags */
+            if (endpoint.url === Endpoints.READ_DTC.url) {
+            
+                /* Add ecu_id */
+                url += '?ecu_id=' + ecu_id;
+
+                /* Add subfunction */
+                url += '&subfunc=' + read_dtc_subfunc;
+
+                /* Add mask_bits */
+                for (const mask_bit of dtc_mask_bits) {
+                    url+= '&dtc_mask_bits=' + mask_bit;
+                }
+            } else {
+            
+                /* Adds manual_flow flag in the url for the endpoints that need it (where need_manual_flag is true).
+                   Also add item flag if needed */
+                if (endpoint.need_manual_flow) {
+                    url += (url.includes('?') ? '&' : '?') + 'is_manual_flow=' + manual_flow;
+
+                    if (endpoint.supports_item_flag && item) {
+                        url += (url.includes('?') ? '&' : '?') + 'item=' + item;
+                    }
+                }
+            }
+
+        /*** Prepare fetch options and fetch the response ***/
+
+            /* Set up the options for the fetch request.
+               If the method is POST, initialize the Content-Type in headers and also add the payload JSON */
+            const fetch_options: RequestInit = {
+                method: endpoint.method,
+                headers: { 'Content-Type': 'application/json' },
+                body: endpoint.method === 'POST' ? JSON.stringify(json) : undefined
+            };
+
+            /* Make the API call */
+            const response = await fetch(url, fetch_options);
+
+            /* Error case: response is not ok (code between 200-299) */
+            if (!response.ok) {
+                throw new Error(`apiCall: Error: ${response.status} ${response.statusText}`);
+            }
+
+            /* Parse the JSON response */
+            const responseData = await response.json();
+
+            /* Check for connection errors */
+            if (responseData?.ERROR === 'interrupted') {
+                throw new Error('Connection interrupted');
+            }
+
+            /* Return the parsed response */
+            return responseData;
+        } catch (error) {
+            console.error('API Call error: ', error);
+            displayErrorPopup("Error during API Call");
+            return null;
+        } finally {
+            removeLoadingCircle();
         }
-
-    /*** Prepare fetch options and fetch the response ***/
-
-        /* Set up the options for the fetch request.
-           If the method is POST, initialize the Content-Type in headers and also add the payload JSON */
-        const fetch_options: RequestInit = {
-            method: endpoint.method,
-            headers: { 'Content-Type': 'application/json' },
-            body: endpoint.method === 'POST' ? JSON.stringify(json) : undefined
-        };
-
-        /* Make the API call */
-        const response = await fetch(url, fetch_options);
-
-        /* Error case: response is not ok (code between 200-299) */
-        if (!response.ok) {
-            throw new Error(`apiCall: Error: ${response.status} ${response.statusText}`);
-        }
-
-        /* Return the parsed JSON response */
-        return await response.json();
     }
 
     /* Method that takes care of the API route calls and returns the response:
@@ -300,29 +320,47 @@ class ApiManager {
     */
     async routeCall(route: RouteInfo): Promise<any> {
 
-        /* Error case: invalid endpoint */
-        if (!route) {
-            throw new Error('routeCall: The provided route is invalid!');
+        displayLoadingCircle();
+        try {
+            /* Error case: invalid endpoint */
+            if (!route) {
+                throw new Error('routeCall: The provided route is invalid!');
+            }
+
+            /* Set up the path that will be used */
+            let path = route.path;
+
+            /* Set up the options for the fetch request */
+            const options: RequestInit = {
+                method: route.method,
+            };
+
+            /* Make the Route call */
+            const response = await fetch(path, options);
+
+            /* Error case: response is not ok */
+            if (!response.ok) {
+                throw new Error(`routeCall: Error: ${response.status} ${response.statusText}`);
+            }
+
+            /* Parse the JSON response */
+            const responseData = await response.json();
+
+            /* Check for connection errors */
+            if (responseData?.ERROR === 'interrupted') {
+                throw new Error('Connection interrupted');
+            }
+
+            /* Return the parsed response */
+            return responseData;
+
+        } catch (error) {
+            console.error('Route Call error: ', error);
+            displayErrorPopup("Error during Route Call");
+            return null;
+        } finally {
+            removeLoadingCircle();
         }
-
-        /* Set up the path that will be used */
-        let path = route.path;
-
-        /* Set up the options for the fetch request */
-        const options: RequestInit = {
-            method: route.method,
-        };
-
-        /* Make the Route call */
-        const response = await fetch(path, options);
-
-        /* Error case: response is not ok */
-        if (!response.ok) {
-            throw new Error(`routeCall: Error: ${response.status} ${response.statusText}`);
-        }
-
-        /* Return the parsed JSON response */
-        return await response.json();
     }
 }
 
