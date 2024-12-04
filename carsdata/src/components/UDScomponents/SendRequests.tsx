@@ -35,7 +35,7 @@ const SendRequests = () => {
     const [disableInfoDoorsBtns, setDisableInfoDoorsBtns] = useState<boolean>(false);
     const [disableInfoHvacBtns, setDisableInfoHvacBtns] = useState<boolean>(false);
     const [disableConvertBtn, setDisableConvertBtn] = useState<boolean>(true);
-    const [session, setSession] = useState<string>("default");
+    const [session, setSession] = useState("default");
     const [testerPres, setTesterPres] = useState<string>("disabled");
     const [accessTiming, setAccessTiming] = useState<string>("current");
     const [selectedECUid, setSelectedECUid] = useState<string>("");
@@ -74,8 +74,8 @@ const SendRequests = () => {
         if (ecuId2 === id) {
             return {
                 backgroundColor: '#4b5563',
-                color: 'white', 
-                fontWeight: 'bold', 
+                color: 'white',
+                fontWeight: 'bold',
             };
         }
         return {};
@@ -87,13 +87,13 @@ const SendRequests = () => {
             writeAccessTiming(ecuId3, sub_funct, setData23);
         }
     };
-    
+
     const getSelected2 = (id: string) => {
         if (ecuId3 === id) {
             return {
                 backgroundColor: '#4b5563',
-                color: 'white', 
-                fontWeight: 'bold', 
+                color: 'white',
+                fontWeight: 'bold',
             };
         }
         return {};
@@ -326,40 +326,44 @@ const SendRequests = () => {
         return value;
     }; // will be moved only in DivCenterHvac
 
+    //Change session
     const changeSession = async () => {
-        let sessiontype: any;
-
-        // Define session type based on the current session state
-        sessiontype = {
+        let sessiontype = {
             sub_funct: session === "default" ? 2 : 1
         };
-
         displayLoadingCircle();
-        console.log("Changing session...");
-        console.log(sessiontype);
+        console.log("Session type sent:", sessiontype);
         try {
-            await fetch(`http://127.0.0.1:5000/api/change_session`, {
+            const response = await fetch(`http://127.0.0.1:5000/api/change_session`, {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(sessiontype),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    setData23(data);
-                    console.log(data);
-                    fetchLogs();
-                    data.status === "success" ? setSession(session === "default" ? "programming" : "default") : setSession;
+            });
+            const data = await response.json();
+            console.log("API response:", data);
 
+            if (data.message && data.message.includes("Session changed to")) {
+                console.log("Session change confirmed:", data.message);
+
+                setSession(prevSession => {
+                    const newSession = prevSession === "default" ? "programming" : "default";
+                    console.log("Session updated to:", newSession);
+                    return newSession;
                 });
+            } else {
+                console.log("Failed to change session:", data.message || "Unknown error");
+            }
+            setData23(data);
+            fetchLogs();
         } catch (error) {
-            console.log(error);
-            removeLoadingCircle();
+            console.log("Error:", error);
+        } finally {
+            removeLoadingCicle();
         }
-        removeLoadingCircle();
-    }
+    };
 
     const authenticate = async () => {
         console.log("Authenticating...");
@@ -410,16 +414,18 @@ const SendRequests = () => {
 
     const writeAccessTiming = async (ecu_id: string, sub_funct: string, setData: any) => {
         let data_sent: { [key: string]: any };
-        
+
         if (sub_funct === '2') {
             console.log('Write Access Timing - Reset to Default');
-            data_sent = {ecu_id: ecu_id, sub_funct: sub_funct};
+            data_sent = { ecu_id: ecu_id, sub_funct: sub_funct };
 
         } else {
-            data_sent = {p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
-                        p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10),
-                        ecu_id: ecu_id,
-                        sub_funct: sub_funct};
+            data_sent = {
+                p2_max: parseInt(prompt("Enter p2_max value:") || "0", 10),
+                p2_star_max: parseInt(prompt("Enter p2_star_max value:") || "0", 10),
+                ecu_id: ecu_id,
+                sub_funct: sub_funct
+            };
         }
 
         displayLoadingCircle();
@@ -574,14 +580,12 @@ const SendRequests = () => {
                     <div className="mt-2 ml-5">
                         <p>Tester present: {testerPres}</p>
                         <input type="checkbox" className="toggle toggle-info" checked={testerPres === "disabled" ? false : true} onChange={testerPresent} />
-                        {/* <>checked?????????????</> */}
                     </div>
                     <div className="mt-2 ml-5">
                         <p>Session: {session}</p>
-                        <input type="checkbox" className="toggle toggle-info" checked={session === "default" ? false : true} onChange={changeSession} />
-                        {/* <>checked?????????????</> */}
+                        <input type="checkbox" className="toggle toggle-info" checked={session === "programming"} onChange={changeSession} />
                     </div>
-      {/*               <div className="mt-2 ml-5">
+                    {/*               <div className="mt-2 ml-5">
                         <p>Read {accessTiming} access timing</p>
                         <input type="checkbox" className="toggle toggle-info" checked={accessTiming === "current" ? false : true} onChange={readAccessTiming} />
                     </div> */}
@@ -884,7 +888,7 @@ const SendRequests = () => {
 
                 <div className="mt-2">
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={authenticate} disabled={disableFrameAndDtcBtns}>Authenticate</button>
-                    
+
                     {/* Dropdown for ReadDTC ECUs */}
                     <div className="dropdown">
                         <label tabIndex={0} className="btn btn-success w-fit ml-1 mt-2 text-white">
@@ -907,7 +911,7 @@ const SendRequests = () => {
                             </li>
                         </ul>
                     </div>
-                    
+
                     {/* Read DTC modal */}
                     {modalEcuId && (
                         <ModalReadDTC
@@ -917,7 +921,7 @@ const SendRequests = () => {
                             setter={setReadDTCResult}
                         />
                     )}
-                  
+
                     <div className="dropdown">
                         <button tabIndex={10} className="btn btn-success w-fit ml-1 mt-2 text-white" disabled={disableClearDTC}>
                             Clear DTC
@@ -941,12 +945,12 @@ const SendRequests = () => {
                             </ul>
                             <ModalClearDTC id="clearDTC_modal" ecu_id={ecuId} clearDTC={clearDTC} setter={setData23} />
                         </div>
-                    </div>    
-                          
+                    </div>
+
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getIdentifiers} disabled={disableFrameAndDtcBtns}>Read identifiers</button>
 
                     {/* <button className="btn bg-blue-500 w-fit ml-1 mt-2 hover:bg-blue-600 text-white" onClick={readAccessTiming}>Read Timing</button> */}
-                    
+
                     <div className="dropdown">
                         <button tabIndex={10} className="btn bg-blue-500 w-fit m-1 hover:bg-blue-600 text-white" disabled={disableReadTiming}>
                             Read Timing
@@ -1079,8 +1083,8 @@ const SendRequests = () => {
                                 )}
                             </ul>
                         </div>
-                    </div>                    
-                    
+                    </div>
+
                     <button className="btn btn-warning w-fit ml-1 mt-2 text-white" onClick={getNewSoftVersions}>Check new soft versions</button>
 
                     {data23 && (
